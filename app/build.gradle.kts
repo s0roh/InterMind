@@ -40,8 +40,19 @@ android {
 }
 
 dependencies {
+    implementation(projects.feature.auth.api)
+    implementation(projects.feature.auth.impl)
+    implementation(projects.feature.explore.api)
+    implementation(projects.feature.explore.impl)
+    implementation(projects.feature.decks.api)
+    implementation(projects.feature.decks.impl)
+    implementation(projects.feature.history.api)
+    implementation(projects.feature.history.impl)
+    implementation(projects.feature.profile.api)
+    implementation(projects.feature.profile.impl)
+
     implementation(projects.core.designsystem)
-    
+
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)

@@ -51,6 +51,7 @@ import com.soroh.intermind.core.designsystem.theme.black
 import com.soroh.intermind.core.designsystem.theme.darkGray
 import com.soroh.intermind.core.designsystem.theme.darkPurple
 import com.soroh.intermind.core.designsystem.theme.purple
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
@@ -71,6 +72,13 @@ fun AuthScreen(
     RegisterScreen()
 }
 
+val supabase = createSupabaseClient(
+    supabaseUrl = "https://kmzvykougtykprzotyrr.supabase.co",
+    supabaseKey = "sb_publishable_xHIxDmCM8N9kgAsnzC7JrQ_VtbhJ_LJ"
+) {
+    install(Auth)
+}
+
 @Composable
 private fun RegisterScreen() {
     var emailValue by remember {
@@ -82,8 +90,9 @@ private fun RegisterScreen() {
     }
 
     val context = LocalContext.current
+
     val authManager = remember {
-        AuthManager(context)
+        AuthManager(context, supabase)
     }
     val coroutineScope = rememberCoroutineScope()
 
@@ -336,14 +345,10 @@ sealed interface AuthResponse {
 }
 
 class AuthManager(
-    private val context: Context
+    private val context: Context,
+    private val supabase: SupabaseClient
 ) {
-    private val supabase = createSupabaseClient(
-        supabaseUrl = "https://kmzvykougtykprzotyrr.supabase.co",
-        supabaseKey = "sb_publishable_xHIxDmCM8N9kgAsnzC7JrQ_VtbhJ_LJ"
-    ) {
-        install(Auth)
-    }
+
 
     fun signUpWithEmail(emailValue: String, passwordValue: String): Flow<AuthResponse> = flow {
         try {
