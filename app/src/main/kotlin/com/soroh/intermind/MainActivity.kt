@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.soroh.intermind.core.designsystem.theme.InterMindTheme
 import com.soroh.intermind.feature.auth.impl.AuthScreen
 import com.soroh.intermind.feature.auth.impl.supabase
+import com.soroh.intermind.ui.InterMindApp
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.launch
@@ -40,7 +41,7 @@ class MainActivity : ComponentActivity() {
                 Log.d(TAG, "User authenticated: $isAuthenticated")
 
                 if (isAuthenticated) {
-                    MainScreenWithLogout()
+                    InterMindApp()
                     // Показать главный экран
                     // MainScreen()
                 } else {
