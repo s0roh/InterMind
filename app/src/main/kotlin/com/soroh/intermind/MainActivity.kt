@@ -28,7 +28,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.launch
 
-private const val TAG = "MainActivity"
+private const val TAG = "MainActivity!@#"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,34 +50,6 @@ class MainActivity : ComponentActivity() {
                     // AuthScreen()
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun MainScreenWithLogout() {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Button(
-            onClick = {
-                // Выход из аккаунта
-                scope.launch {
-                    try {
-                        supabase.auth.signOut()
-                        Toast.makeText(context, "Вы вышли из аккаунта", Toast.LENGTH_SHORT).show()
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Ошибка при выходе: ${e.message}")
-                        Toast.makeText(context, "Ошибка при выходе", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        ) {
-            Text("Выйти из аккаунта")
         }
     }
 }

@@ -21,7 +21,4 @@ android {
 
 dependencies {
     api(projects.core.navigation)
-
-    implementation(libs.androidx.core.ktx)
-    testImplementation(libs.junit)
 }

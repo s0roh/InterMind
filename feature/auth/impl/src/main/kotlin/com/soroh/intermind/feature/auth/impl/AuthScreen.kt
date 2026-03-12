@@ -15,9 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -36,6 +39,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -46,7 +50,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import androidx.compose.ui.tooling.preview.Preview
+import com.soroh.intermind.core.designsystem.component.ThemePreviews
 import com.soroh.intermind.core.designsystem.theme.black
 import com.soroh.intermind.core.designsystem.theme.darkGray
 import com.soroh.intermind.core.designsystem.theme.darkPurple
@@ -63,13 +67,32 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-/**
- * Экран авторизации с формой регистрации и входом через Google. */
+private const val TAG = "AuthScreen"
+
+sealed interface AuthScreenState {
+    data object Register : AuthScreenState
+    data object Login : AuthScreenState
+    data object ForgotPassword : AuthScreenState
+}
+
 @Composable
 fun AuthScreen(
     modifier: Modifier = Modifier
 ) {
-    RegisterScreen()
+    var currentScreen by remember { mutableStateOf<AuthScreenState>(AuthScreenState.Register) }
+
+    when (currentScreen) {
+        AuthScreenState.Register -> RegisterScreen(
+            onNavigateToLogin = { currentScreen = AuthScreenState.Login }
+        )
+        AuthScreenState.Login -> LoginScreen(
+            onNavigateToRegister = { currentScreen = AuthScreenState.Register },
+            onNavigateToForgotPassword = { currentScreen = AuthScreenState.ForgotPassword }
+        )
+        AuthScreenState.ForgotPassword -> ForgotPasswordScreen(
+            onNavigateBack = { currentScreen = AuthScreenState.Login }
+        )
+    }
 }
 
 val supabase = createSupabaseClient(
@@ -80,22 +103,279 @@ val supabase = createSupabaseClient(
 }
 
 @Composable
-private fun RegisterScreen() {
-    var emailValue by remember {
-        mutableStateOf("")
-    }
-
-    var passwordValue by remember {
-        mutableStateOf("")
-    }
+private fun RegisterScreen(
+    onNavigateToLogin: () -> Unit
+) {
+    var emailValue by remember { mutableStateOf("") }
+    var passwordValue by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-
-    val authManager = remember {
-        AuthManager(context, supabase)
-    }
+    val authManager = remember { AuthManager(context, supabase) }
     val coroutineScope = rememberCoroutineScope()
 
+    AuthScreenContent(
+        title = "Create An Account",
+        subtitle = "Enter your personal data to create an account",
+        emailValue = emailValue,
+        onEmailChange = { emailValue = it },
+        passwordValue = passwordValue,
+        onPasswordChange = { passwordValue = it },
+        buttonText = "Sign up",
+        onButtonClick = {
+            isLoading = true
+            authManager.signUpWithEmail(emailValue, passwordValue)
+                .onEach { result ->
+                    isLoading = false
+                    when (result) {
+                        is AuthResponse.Success -> Log.d(TAG, "Email Sign Up Success")
+                        is AuthResponse.Error -> Log.e(TAG, "Email Sign Up Error: ${result.message}")
+                    }
+                }
+                .launchIn(coroutineScope)
+        },
+        onGoogleClick = {
+            authManager.loginGoogleUser()
+                .onEach { result ->
+                    when (result) {
+                        is AuthResponse.Success -> Log.d(TAG, "Google Success")
+                        is AuthResponse.Error -> Log.e(TAG, "Google Error: ${result.message}")
+                    }
+                }
+                .launchIn(coroutineScope)
+        },
+        bottomText = buildAnnotatedString {
+            append("Already have an account? ")
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+                append("Log in")
+            }
+        },
+        onBottomTextClick = onNavigateToLogin,
+        isLoading = isLoading
+    )
+}
+
+@Composable
+private fun LoginScreen(
+    onNavigateToRegister: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit
+) {
+    var emailValue by remember { mutableStateOf("") }
+    var passwordValue by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val authManager = remember { AuthManager(context, supabase) }
+    val coroutineScope = rememberCoroutineScope()
+
+    AuthScreenContent(
+        title = "Welcome Back",
+        subtitle = "Enter your credentials to access your account",
+        emailValue = emailValue,
+        onEmailChange = { emailValue = it },
+        passwordValue = passwordValue,
+        onPasswordChange = { passwordValue = it },
+        buttonText = "Log in",
+        onButtonClick = {
+            isLoading = true
+            authManager.signInWithEmail(emailValue, passwordValue)
+                .onEach { result ->
+                    isLoading = false
+                    when (result) {
+                        is AuthResponse.Success -> Log.d(TAG, "Email Sign In Success")
+                        is AuthResponse.Error -> Log.e(TAG, "Email Sign In Error: ${result.message}")
+                    }
+                }
+                .launchIn(coroutineScope)
+        },
+        onGoogleClick = {
+            authManager.loginGoogleUser()
+                .onEach { result ->
+                    when (result) {
+                        is AuthResponse.Success -> Log.d(TAG, "Google Success")
+                        is AuthResponse.Error -> Log.e(TAG, "Google Error: ${result.message}")
+                    }
+                }
+                .launchIn(coroutineScope)
+        },
+        bottomText = buildAnnotatedString {
+            append("Don't have an account? ")
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+                append("Sign up")
+            }
+        },
+        onBottomTextClick = onNavigateToRegister,
+        showForgotPassword = true,
+        onForgotPasswordClick = onNavigateToForgotPassword,
+        isLoading = isLoading
+    )
+}
+
+@Composable
+private fun ForgotPasswordScreen(
+    onNavigateBack: () -> Unit
+) {
+    var emailValue by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var isEmailSent by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val authManager = remember { AuthManager(context, supabase) }
+    val coroutineScope = rememberCoroutineScope()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(black),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Gradient()
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+                .padding(top = 110.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Reset Password",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = if (isEmailSent)
+                    "Check your email for reset instructions"
+                else
+                    "Enter your email and we'll send you instructions to reset your password",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.8f)
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            if (!isEmailSent) {
+                Column(horizontalAlignment = Alignment.Start) {
+                    Text(
+                        text = "Email",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    TextField(
+                        value = emailValue,
+                        onValueChange = { emailValue = it },
+                        placeholder = {
+                            Text(
+                                text = "your.email@example.com",
+                                color = Color.White.copy(alpha = 0.7f)
+                            )
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = TextFieldDefaults.colors(
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            focusedContainerColor = darkGray,
+                            unfocusedContainerColor = darkGray
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(35.dp))
+
+                Button(
+                    onClick = {
+                        isLoading = true
+                        authManager.resetPassword(emailValue)
+                            .onEach { result ->
+                                isLoading = false
+                                when (result) {
+                                    is AuthResponse.Success -> {
+                                        isEmailSent = true
+                                        Log.d(TAG, "Password reset email sent")
+                                    }
+                                    is AuthResponse.Error -> Log.e(TAG, "Reset Error: ${result.message}")
+                                }
+                            }
+                            .launchIn(coroutineScope)
+                    },
+                    enabled = emailValue.isNotBlank() && !isLoading,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = black,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = "Send Reset Link",
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            color = black
+                        )
+                    }
+                }
+            } else {
+                Button(
+                    onClick = onNavigateBack,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Back to Login",
+                        modifier = Modifier.padding(vertical = 4.dp),
+                        color = black
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(25.dp))
+
+            TextButton(onClick = onNavigateBack) {
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(SpanStyle(color = Color.White.copy(alpha = 0.8f))) {
+                            append("Remember your password? ")
+                        }
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+                            append("Log in")
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AuthScreenContent(
+    title: String,
+    subtitle: String,
+    emailValue: String,
+    onEmailChange: (String) -> Unit,
+    passwordValue: String,
+    onPasswordChange: (String) -> Unit,
+    buttonText: String,
+    onButtonClick: () -> Unit,
+    onGoogleClick: () -> Unit,
+    bottomText: AnnotatedString,
+    onBottomTextClick: () -> Unit,
+    showForgotPassword: Boolean = false,
+    onForgotPasswordClick: (() -> Unit)? = null,
+    isLoading: Boolean = false
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -111,23 +391,24 @@ private fun RegisterScreen() {
                 .padding(top = 110.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            RegisterHeader()
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White
+            )
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            GoogleSignInButton(
-                onClick = {
-                    authManager.loginGoogleUser()
-                        .onEach { result ->
-                            if (result is AuthResponse.Success) {
-                                Log.d("auth", "Google Success")
-                            } else {
-                                Log.e("auth", "Google Failed")
-                            }
-                        }
-                        .launchIn(coroutineScope)
-                }
-            )
+            GoogleSignInButton(onClick = onGoogleClick)
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -154,9 +435,7 @@ private fun RegisterScreen() {
                 )
             }
 
-            Column(
-                horizontalAlignment = Alignment.Start
-            ) {
+            Column(horizontalAlignment = Alignment.Start) {
                 Text(
                     text = "Email",
                     color = Color.White,
@@ -167,9 +446,7 @@ private fun RegisterScreen() {
 
                 TextField(
                     value = emailValue,
-                    onValueChange = { newValue ->
-                        emailValue = newValue
-                    },
+                    onValueChange = onEmailChange,
                     placeholder = {
                         Text(
                             text = "your.email@example.com",
@@ -189,9 +466,7 @@ private fun RegisterScreen() {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Column(
-                horizontalAlignment = Alignment.Start
-            ) {
+            Column(horizontalAlignment = Alignment.Start) {
                 Text(
                     text = "Password",
                     color = Color.White,
@@ -202,9 +477,7 @@ private fun RegisterScreen() {
 
                 TextField(
                     value = passwordValue,
-                    onValueChange = { newValue ->
-                        passwordValue = newValue
-                    },
+                    onValueChange = onPasswordChange,
                     placeholder = {
                         Text(
                             text = "Enter your password",
@@ -223,58 +496,46 @@ private fun RegisterScreen() {
                 )
             }
 
-            Spacer(modifier = Modifier.height(35.dp))
+            if (showForgotPassword && onForgotPasswordClick != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                TextButton(
+                    onClick = onForgotPasswordClick,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(
+                        text = "Забыли пароль?",
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             Button(
-                onClick = {
-                    authManager.signUpWithEmail(emailValue, passwordValue)
-                        .onEach { result ->
-                            if (result is AuthResponse.Success) {
-                                Log.d("auth", "Email Success")
-                            } else {
-                                Log.e("auth", "Email Failed")
-                            }
-                        }
-                        .launchIn(coroutineScope)
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White
-                ),
+                onClick = onButtonClick,
+                enabled = emailValue.isNotBlank() && passwordValue.isNotBlank() && !isLoading,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = "Sign up",
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = black,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = buttonText,
+                        modifier = Modifier.padding(vertical = 4.dp),
+                        color = black
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(25.dp))
 
-            TextButton(
-                onClick = {
-
-                }) {
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                fontWeight = FontWeight.Light,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                        ) {
-                            append("Already have an account? ")
-                        }
-
-                        withStyle(
-                            style = SpanStyle(
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        ) {
-                            append("Log in")
-                        }
-                    })
+            TextButton(onClick = onBottomTextClick) {
+                Text(text = bottomText)
             }
         }
     }
@@ -304,24 +565,6 @@ private fun GoogleSignInButton(onClick: () -> Unit) {
 }
 
 @Composable
-private fun RegisterHeader() {
-    Text(
-        text = "Create An Account",
-        style = MaterialTheme.typography.titleLarge,
-        color = Color.White,
-        fontWeight = FontWeight.Bold
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    Text(
-        text = "Enter your personal data to create an account",
-        style = MaterialTheme.typography.bodyMedium,
-        color = Color.White
-    )
-}
-
-@Composable
 private fun Gradient() {
     Box(
         modifier = Modifier
@@ -329,11 +572,7 @@ private fun Gradient() {
             .fillMaxHeight(0.35f)
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(
-                        purple,
-                        darkPurple,
-                        black
-                    )
+                    colors = listOf(purple, darkPurple, black)
                 )
             )
     )
@@ -349,30 +588,34 @@ class AuthManager(
     private val supabase: SupabaseClient
 ) {
 
-
-    fun signUpWithEmail(emailValue: String, passwordValue: String): Flow<AuthResponse> = flow {
+    fun signUpWithEmail(email: String, password: String): Flow<AuthResponse> = flow {
         try {
             supabase.auth.signUpWith(Email) {
-                email = emailValue
-                password = passwordValue
+                this.email = email
+                this.password = password
             }
-
-            emit(AuthResponse.Success)
-
+            signInWithEmail(email, password).collect { emit(it) }
         } catch (e: Exception) {
             emit(AuthResponse.Error(e.localizedMessage))
         }
     }
 
-    fun signInWithEmail(emailValue: String, passwordValue: String): Flow<AuthResponse> = flow {
+    fun signInWithEmail(email: String, password: String): Flow<AuthResponse> = flow {
         try {
             supabase.auth.signInWith(Email) {
-                email = emailValue
-                password = passwordValue
+                this.email = email
+                this.password = password
             }
-
             emit(AuthResponse.Success)
+        } catch (e: Exception) {
+            emit(AuthResponse.Error(e.localizedMessage))
+        }
+    }
 
+    fun resetPassword(email: String): Flow<AuthResponse> = flow {
+        try {
+            supabase.auth.resetPasswordForEmail(email)
+            emit(AuthResponse.Success)
         } catch (e: Exception) {
             emit(AuthResponse.Error(e.localizedMessage))
         }
@@ -392,31 +635,23 @@ class AuthManager(
         val credentialManager = CredentialManager.create(context)
 
         try {
-            val result = credentialManager.getCredential(
-                context = context,
-                request = request
-            )
-
-            val googleIdTokenCredential = GoogleIdTokenCredential
-                .createFrom(result.credential.data)
-
+            val result = credentialManager.getCredential(context = context, request = request)
+            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
             val googleIdToken = googleIdTokenCredential.idToken
 
             supabase.auth.signInWith(IDToken) {
                 idToken = googleIdToken
                 provider = Google
             }
-
             emit(AuthResponse.Success)
-
         } catch (e: Exception) {
             emit(AuthResponse.Error(e.localizedMessage))
         }
     }
 }
 
-@Preview(showBackground = true, name = "тест")
+@ThemePreviews
 @Composable
 private fun RegisterPreview() {
-    AuthScreen()
+    RegisterScreen(onNavigateToLogin = {})
 }

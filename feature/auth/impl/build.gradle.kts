@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -26,18 +25,17 @@ android {
 dependencies {
     implementation(projects.core.designsystem)
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.kotlinx.serialization.core)
+    debugImplementation(libs.androidx.compose.ui.tooling)
 
-    // Navigation
-    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation3.ui)
+
+    implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.androidx.lifecycle.viewModelCompose)
 
     // Supabase
     implementation(platform(libs.supabase.bom))
