@@ -114,7 +114,8 @@ fun ForgotPasswordScreen(
                 // Кнопка отправки
                 Button(
                     onClick = {
-                        viewModel.resetPassword(emailValue)
+                        viewModel.forgotPassword(emailValue)
+                        isEmailSent = true
                     },
                     enabled = emailValue.isNotBlank() && !isLoading,
                     shape = RoundedCornerShape(12.dp),

@@ -29,7 +29,10 @@ interface DataModule {
                 supabaseUrl = "https://kmzvykougtykprzotyrr.supabase.co",
                 supabaseKey = "sb_publishable_xHIxDmCM8N9kgAsnzC7JrQ_VtbhJ_LJ"
             ) {
-                install(Auth)
+                install(Auth) {
+                    host = "intermind.com"
+                    scheme = "app"
+                }
             }
         }
     }

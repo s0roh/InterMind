@@ -52,18 +52,31 @@ class AuthRepositoryImpl @Inject constructor(
         emit(AuthResponse.Error(message.localizedMessage))
     }.flowOn(Dispatchers.IO)
 
-    override fun loginWithGoogleToken(googleIdToken: String): Flow<AuthResponse> = flow<AuthResponse> {
-        supabaseClient.auth.signInWith(IDToken) {
-            idToken = googleIdToken
-            provider = Google
-        }
+    override fun loginWithGoogleToken(googleIdToken: String): Flow<AuthResponse> =
+        flow<AuthResponse> {
+            supabaseClient.auth.signInWith(IDToken) {
+                idToken = googleIdToken
+                provider = Google
+            }
+            emit(AuthResponse.Success)
+        }.catch { message ->
+            emit(AuthResponse.Error(message.localizedMessage))
+        }.flowOn(Dispatchers.IO)
+
+    override fun resetPassword(email: String): Flow<AuthResponse> = flow<AuthResponse> {
+        supabaseClient.auth.resetPasswordForEmail(
+            email = email,
+            redirectUrl = "app://intermind.com/reset-password"
+        )
         emit(AuthResponse.Success)
     }.catch { message ->
         emit(AuthResponse.Error(message.localizedMessage))
     }.flowOn(Dispatchers.IO)
 
-    override fun resetPassword(email: String): Flow<AuthResponse> = flow<AuthResponse> {
-        supabaseClient.auth.resetPasswordForEmail(email)
+    override fun updatePassword(newPassword: String): Flow<AuthResponse> = flow<AuthResponse> {
+        supabaseClient.auth.updateUser {
+            password = newPassword
+        }
         emit(AuthResponse.Success)
     }.catch { message ->
         emit(AuthResponse.Error(message.localizedMessage))

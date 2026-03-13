@@ -8,6 +8,8 @@ import com.soroh.intermind.feature.auth.impl.ForgotPasswordScreen
 
 fun EntryProviderScope<NavKey>.forgotPasswordEntry(backStack: NavBackStack<NavKey>) {
     entry<ForgotPasswordNavKey> {
-        ForgotPasswordScreen(onNavigateBack = { backStack.removeAt(backStack.lastIndex) })
+        ForgotPasswordScreen(
+            onNavigateBack = { backStack.removeAt(backStack.lastIndex) }
+        )
     }
 }

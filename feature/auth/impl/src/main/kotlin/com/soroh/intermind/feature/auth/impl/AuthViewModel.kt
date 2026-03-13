@@ -65,26 +65,24 @@ class AuthViewModel @Inject constructor(
                         Log.d(TAG, "Email Sign In Success")
                     }
                 }
-            }
-            .launchIn(viewModelScope)
+            }.launchIn(viewModelScope)
     }
 
     fun loginWithGoogle(idToken: String) {
         authRepository.loginWithGoogleToken(idToken)
             .onEach { response ->
                 when (response) {
-                    is AuthResponse.Success -> Log.d(TAG, "Google Success")
+                    AuthResponse.Success -> Log.d(TAG, "Google Success")
                     is AuthResponse.Error -> Log.e(TAG, "Google Error: ${response.message}")
                 }
-            }
-            .launchIn(viewModelScope)
+            }.launchIn(viewModelScope)
     }
 
-    fun resetPassword(email: String) {
+    fun forgotPassword(email: String) {
         authRepository.resetPassword(email = email)
             .onEach { response ->
                 when (response) {
-                    is AuthResponse.Success -> {
+                    AuthResponse.Success -> {
                         Log.d(TAG, "Password reset email sent")
                     }
 
@@ -92,22 +90,41 @@ class AuthViewModel @Inject constructor(
                         Log.e(TAG, "Reset password error: ${response.message}")
                     }
                 }
-            }
-            .launchIn(viewModelScope)
+            }.launchIn(viewModelScope)
+    }
+
+    fun resetPassword(newPassword: String) {
+        authRepository.updatePassword(newPassword = newPassword)
+            .onEach { response ->
+                when (response) {
+                    AuthResponse.Success -> {
+                        Log.d(TAG, "Password reset completed successfully")
+                        _screenState.value = AuthState.PasswordResetSuccess
+                    }
+                    is AuthResponse.Error -> Log.e(
+                        TAG,
+                        "Password reset failed: ${response.message}"
+                    )
+                }
+            }.launchIn(viewModelScope)
     }
 
     fun signOut() {
         authRepository.signOut()
-            .onEach {response ->
+            .onEach { response ->
                 when (response) {
                     is AuthResponse.Success -> {
                         _uiEvent.emit("Вы вышли из аккаунта")
                     }
+
                     is AuthResponse.Error -> {
                         _uiEvent.emit(response.message ?: "Ошибка при выходе")
                     }
                 }
-            }
-            .launchIn(viewModelScope)
+            }.launchIn(viewModelScope)
+    }
+
+    fun onPasswordResetHandled() {
+        _screenState.value = AuthState.Idle
     }
 }

@@ -16,5 +16,7 @@ interface AuthRepository {
 
     fun resetPassword(email: String): Flow<AuthResponse>
 
+    fun updatePassword(newPassword: String): Flow<AuthResponse>
+
      fun signOut(): Flow<AuthResponse>
 }

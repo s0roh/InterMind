@@ -3,7 +3,7 @@ package com.soroh.intermind.feature.auth.impl.util
 import android.net.Uri
 import com.soroh.intermind.core.navigation.deeplink.DeepLinkKey
 import com.soroh.intermind.core.navigation.deeplink.FeatureDeepLinkParser
-import com.soroh.intermind.feature.auth.api.navigation.ForgotPasswordNavKey
+import com.soroh.intermind.feature.auth.api.navigation.ResetPasswordNavKey
 import jakarta.inject.Inject
 
 internal class AuthDeepLinkParser @Inject constructor() : FeatureDeepLinkParser {
@@ -14,10 +14,10 @@ internal class AuthDeepLinkParser @Inject constructor() : FeatureDeepLinkParser 
 
         return when {
             host == "intermind.com" && path?.contains(
-                "/forgot-password",
+                "/reset-password",
                 ignoreCase = true
             ) == true -> {
-                ForgotPasswordNavKey
+                ResetPasswordNavKey
             }
 
             else -> null

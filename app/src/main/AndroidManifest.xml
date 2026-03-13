@@ -33,7 +33,7 @@
                 <data
                     android:scheme="app"
                     android:host="intermind.com"
-                    android:pathPrefix="/forgot-password" />
+                    android:pathPrefix="/reset-password" />
             </intent-filter>
         </activity>
     </application>
