@@ -38,8 +38,7 @@ internal object GoogleAuthUiClient {
                 Log.e("GoogleAuth", "Получен неизвестный тип кредов")
                 null
             }
-        } catch (e: GetCredentialCancellationException) {
-            // Пользователь просто смахнул шторку аккаунтов вниз (отменил вход)
+        } catch (_: GetCredentialCancellationException) {
             Log.d("GoogleAuth", "Вход отменен пользователем")
             null
         } catch (e: GetCredentialException) {

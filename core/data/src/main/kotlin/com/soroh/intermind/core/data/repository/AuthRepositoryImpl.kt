@@ -1,12 +1,6 @@
 package com.soroh.intermind.core.data.repository
 
-import android.content.Context
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.soroh.intermind.core.data.model.AuthResponse
-import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
@@ -17,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import javax.inject.Inject
@@ -26,7 +19,6 @@ import javax.inject.Inject
  * Implements a [AuthRepository]
  */
 class AuthRepositoryImpl @Inject constructor(
-    @param:ApplicationContext private val context: Context,
     private val supabaseClient: SupabaseClient
 ) : AuthRepository {
 

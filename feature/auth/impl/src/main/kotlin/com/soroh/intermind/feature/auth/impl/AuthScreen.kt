@@ -1,6 +1,5 @@
 package com.soroh.intermind.feature.auth.impl
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,9 +41,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import com.soroh.intermind.core.navigation.deeplink.DeepLinkKey
 import com.soroh.intermind.core.navigation.deeplink.buildSyntheticBackStack
 import com.soroh.intermind.feature.auth.api.navigation.RegistrationNavKey
 import com.soroh.intermind.feature.auth.impl.components.AuthTextField
@@ -54,21 +55,15 @@ import com.soroh.intermind.feature.auth.impl.navigation.forgotPasswordEntry
 import com.soroh.intermind.feature.auth.impl.navigation.loginEntry
 import com.soroh.intermind.feature.auth.impl.navigation.registrationEntry
 import com.soroh.intermind.feature.auth.impl.util.GoogleAuthUiClient
-import com.soroh.intermind.feature.auth.impl.util.parseDeepLink
 import kotlinx.coroutines.launch
 
 @Composable
 fun AuthScreen(
-    deepLinkUri: Uri?,
+    deepLinkKey: DeepLinkKey?
 ) {
-    // Парсим URI в NavKey
-    val deeplinkKey = remember(deepLinkUri) {
-        deepLinkUri?.let { uri -> parseDeepLink(uri) }
-    }
-
     // Формируем synthetic back stack
-    val syntheticBackStack = remember(deeplinkKey) {
-        deeplinkKey?.let { buildSyntheticBackStack(it) } ?: listOf(RegistrationNavKey)
+    val syntheticBackStack: List<NavKey> = remember(deepLinkKey) {
+        deepLinkKey?.let { buildSyntheticBackStack(it) } ?: listOf(RegistrationNavKey)
     }
 
     // Создаем back stack с учетом deep link

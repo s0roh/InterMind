@@ -18,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,8 +41,6 @@ fun ProfileScreen(
 
     var count by remember { mutableIntStateOf(0) }
     var showLogoutDialog by remember { mutableStateOf(false) }
-
-    val scope = rememberCoroutineScope()
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -93,7 +90,6 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        // Здесь логика выхода
                         showLogoutDialog = false
                         viewModel.signOut()
                     }
