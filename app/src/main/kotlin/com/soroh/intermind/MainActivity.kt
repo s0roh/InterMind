@@ -1,5 +1,6 @@
 package com.soroh.intermind
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -24,20 +25,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         setContent {
             InterMindTheme {
                 val isAuthenticated = rememberUserAuthentication()
                 Log.d(TAG, "User authenticated: $isAuthenticated")
 
+                val deepLinkUri: Uri? = intent?.data
+
                 if (isAuthenticated) {
                     InterMindApp()
-                    // Показать главный экран
-                    // MainScreen()
                 } else {
-                    AuthScreen()
-                    // Показать экран авторизации
-                    // AuthScreen()
+                    AuthScreen(deepLinkUri)
                 }
             }
         }

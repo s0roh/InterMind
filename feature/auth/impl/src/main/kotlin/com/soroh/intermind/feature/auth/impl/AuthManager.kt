@@ -79,4 +79,13 @@ class AuthManager(
             emit(AuthResponse.Error(e.localizedMessage))
         }
     }
+
+    fun resetPassword(email: String): Flow<AuthResponse> = flow {
+        try {
+            supabase.auth.resetPasswordForEmail(email)
+            emit(AuthResponse.Success)
+        } catch (e: Exception) {
+            emit(AuthResponse.Error(e.localizedMessage))
+        }
+    }
 }

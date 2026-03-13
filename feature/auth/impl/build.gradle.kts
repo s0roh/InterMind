@@ -24,6 +24,10 @@ android {
 
 dependencies {
     implementation(projects.core.designsystem)
+    implementation(projects.feature.auth.api)
+
+    api(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
     implementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(platform(libs.androidx.compose.bom))

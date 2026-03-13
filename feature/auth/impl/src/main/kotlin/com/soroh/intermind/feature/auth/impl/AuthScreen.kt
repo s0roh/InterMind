@@ -1,5 +1,6 @@
 package com.soroh.intermind.feature.auth.impl
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -40,31 +41,53 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
+import com.soroh.intermind.core.navigation.deeplink.buildSyntheticBackStack
+import com.soroh.intermind.feature.auth.api.navigation.RegistrationNavKey
 import com.soroh.intermind.feature.auth.impl.components.AuthTextField
 import com.soroh.intermind.feature.auth.impl.components.GoogleSignInButton
 import com.soroh.intermind.feature.auth.impl.components.Gradient
+import com.soroh.intermind.feature.auth.impl.navigation.forgotPasswordEntry
+import com.soroh.intermind.feature.auth.impl.navigation.loginEntry
+import com.soroh.intermind.feature.auth.impl.navigation.registrationEntry
+import com.soroh.intermind.feature.auth.impl.util.parseDeepLink
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 private const val TAG = "AuthScreen"
 
 @Composable
-fun AuthScreen() {
-    var isRegistering by remember { mutableStateOf(true) }
-
-    if (isRegistering) {
-        RegisterScreen(
-            onNavigateToLogin = { isRegistering = false }
-        )
-    } else {
-        LoginScreen(
-            onNavigateToRegister = { isRegistering = true }
-        )
+fun AuthScreen(
+    deepLinkUri: Uri?
+) {
+    // Парсим URI в NavKey
+    val deeplinkKey = remember(deepLinkUri) {
+        deepLinkUri?.let { uri -> parseDeepLink(uri) }
     }
+
+    // Формируем synthetic back stack
+    val syntheticBackStack = remember(deeplinkKey) {
+        deeplinkKey?.let { buildSyntheticBackStack(it) } ?: listOf(RegistrationNavKey)
+    }
+
+    // Создаем back stack с учетом deep link
+    val backStack = rememberNavBackStack(*syntheticBackStack.toTypedArray())
+
+    NavDisplay(
+        modifier = Modifier,
+        backStack = backStack,
+        entryProvider = entryProvider {
+            loginEntry(backStack)
+            registrationEntry(backStack)
+            forgotPasswordEntry(backStack)
+        }
+    )
 }
 
 @Composable
-private fun RegisterScreen(
+internal fun RegistrationScreen(
     onNavigateToLogin: () -> Unit
 ) {
     var usernameValue by remember { mutableStateOf("") }
@@ -130,8 +153,9 @@ private fun RegisterScreen(
 }
 
 @Composable
-private fun LoginScreen(
-    onNavigateToRegister: () -> Unit,
+internal fun LoginScreen(
+    onNavigateToRegistration: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit,
 ) {
     var emailValue by remember { mutableStateOf("") }
     var passwordValue by remember { mutableStateOf("") }
@@ -185,7 +209,8 @@ private fun LoginScreen(
         },
         bottomText = "Don't have an account? ",
         bottomTextAction = "Sign up",
-        onBottomTextClick = onNavigateToRegister,
+        onBottomTextClick = onNavigateToRegistration,
+        onForgotPasswordClick = onNavigateToForgotPassword,
         isLoading = isLoading
     )
 }
@@ -224,13 +249,15 @@ private fun AuthScreenContent(
     bottomText: String,
     bottomTextAction: String,
     onBottomTextClick: () -> Unit,
+    onForgotPasswordClick: (() -> Unit)? = null,
     isLoading: Boolean = false
 ) {
     val focusManager = LocalFocusManager.current
 
     Box(
-        modifier = Modifier.fillMaxSize()
-        .background(MaterialTheme.colorScheme.surfaceContainerLowest),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceContainerLowest),
         contentAlignment = Alignment.TopCenter
     ) {
         Gradient()
@@ -381,6 +408,21 @@ private fun AuthScreenContent(
                         text = buttonText,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            // Ссылка "Forgot Password?" только на экране входа
+            if (onForgotPasswordClick != null) {
+                TextButton(
+                    onClick = onForgotPasswordClick,
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text(
+                        text = "Forgot Password?",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
