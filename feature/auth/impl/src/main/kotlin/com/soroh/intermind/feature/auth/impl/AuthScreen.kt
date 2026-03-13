@@ -1,7 +1,6 @@
 package com.soroh.intermind.feature.auth.impl
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +41,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
@@ -52,15 +53,13 @@ import com.soroh.intermind.feature.auth.impl.components.Gradient
 import com.soroh.intermind.feature.auth.impl.navigation.forgotPasswordEntry
 import com.soroh.intermind.feature.auth.impl.navigation.loginEntry
 import com.soroh.intermind.feature.auth.impl.navigation.registrationEntry
+import com.soroh.intermind.feature.auth.impl.util.GoogleAuthUiClient
 import com.soroh.intermind.feature.auth.impl.util.parseDeepLink
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-
-private const val TAG = "AuthScreen"
+import kotlinx.coroutines.launch
 
 @Composable
 fun AuthScreen(
-    deepLinkUri: Uri?
+    deepLinkUri: Uri?,
 ) {
     // Парсим URI в NavKey
     val deeplinkKey = remember(deepLinkUri) {
@@ -88,17 +87,20 @@ fun AuthScreen(
 
 @Composable
 internal fun RegistrationScreen(
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
+
 ) {
+    val screenState by viewModel.screenState.collectAsState()
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
     var usernameValue by remember { mutableStateOf("") }
     var emailValue by remember { mutableStateOf("") }
     var passwordValue by remember { mutableStateOf("") }
     var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-
-    val context = LocalContext.current
-    val authManager = remember { AuthManager(context, supabase) }
-    val coroutineScope = rememberCoroutineScope()
 
     AuthScreenContent(
         title = "Create Account",
@@ -121,29 +123,20 @@ internal fun RegistrationScreen(
         ),
         buttonText = "Sign Up",
         onButtonClick = {
-            isLoading = true
-            authManager.signUpWithEmail(emailValue, passwordValue)
-                .onEach { result ->
-                    isLoading = false
-                    when (result) {
-                        is AuthResponse.Success -> Log.d(TAG, "Email Sign Up Success")
-                        is AuthResponse.Error -> Log.e(
-                            TAG,
-                            "Email Sign Up Error: ${result.message}"
-                        )
-                    }
-                }
-                .launchIn(coroutineScope)
+            viewModel.signUpWithEmail(
+                name = usernameValue,
+                email = emailValue,
+                password = passwordValue
+            )
         },
         onGoogleClick = {
-            authManager.loginGoogleUser()
-                .onEach { result ->
-                    when (result) {
-                        is AuthResponse.Success -> Log.d(TAG, "Google Success")
-                        is AuthResponse.Error -> Log.e(TAG, "Google Error: ${result.message}")
-                    }
+            coroutineScope.launch {
+                val idToken = GoogleAuthUiClient.signIn(context)
+
+                if (idToken != null) {
+                    viewModel.loginWithGoogle(idToken)
                 }
-                .launchIn(coroutineScope)
+            }
         },
         bottomText = "Already have an account? ",
         bottomTextAction = "Log in",
@@ -156,6 +149,8 @@ internal fun RegistrationScreen(
 internal fun LoginScreen(
     onNavigateToRegistration: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
+
 ) {
     var emailValue by remember { mutableStateOf("") }
     var passwordValue by remember { mutableStateOf("") }
@@ -163,7 +158,6 @@ internal fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-    val authManager = remember { AuthManager(context, supabase) }
     val coroutineScope = rememberCoroutineScope()
 
     AuthScreenContent(
@@ -183,29 +177,16 @@ internal fun LoginScreen(
         ),
         buttonText = "Log in",
         onButtonClick = {
-            isLoading = true
-            authManager.signInWithEmail(emailValue, passwordValue)
-                .onEach { result ->
-                    isLoading = false
-                    when (result) {
-                        is AuthResponse.Success -> Log.d(TAG, "Email Sign In Success")
-                        is AuthResponse.Error -> Log.e(
-                            TAG,
-                            "Email Sign In Error: ${result.message}"
-                        )
-                    }
-                }
-                .launchIn(coroutineScope)
+            viewModel.signInWithEmail(email = emailValue, password = passwordValue)
         },
         onGoogleClick = {
-            authManager.loginGoogleUser()
-                .onEach { result ->
-                    when (result) {
-                        is AuthResponse.Success -> Log.d(TAG, "Google Success")
-                        is AuthResponse.Error -> Log.e(TAG, "Google Error: ${result.message}")
-                    }
+            coroutineScope.launch {
+                val idToken = GoogleAuthUiClient.signIn(context)
+
+                if (idToken != null) {
+                    viewModel.loginWithGoogle(idToken)
                 }
-                .launchIn(coroutineScope)
+            }
         },
         bottomText = "Don't have an account? ",
         bottomTextAction = "Sign up",

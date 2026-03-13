@@ -33,6 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soroh.intermind.feature.auth.impl.components.AuthTextField
 import com.soroh.intermind.feature.auth.impl.components.Gradient
 import kotlinx.coroutines.flow.launchIn
@@ -42,15 +44,12 @@ private const val TAG = "ForgotPasswordScreen"
 
 @Composable
 fun ForgotPasswordScreen(
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     var emailValue by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var isEmailSent by remember { mutableStateOf(false) }
-
-    val context = LocalContext.current
-    val authManager = remember { AuthManager(context, supabase) }
-    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -123,21 +122,7 @@ fun ForgotPasswordScreen(
                 // Кнопка отправки
                 Button(
                     onClick = {
-                        isLoading = true
-                        authManager.resetPassword(emailValue)
-                            .onEach { result ->
-                                isLoading = false
-                                when (result) {
-                                    is AuthResponse.Success -> {
-                                        isEmailSent = true
-                                        Log.d(TAG, "Password reset email sent")
-                                    }
-                                    is AuthResponse.Error -> {
-                                        Log.e(TAG, "Reset password error: ${result.message}")
-                                    }
-                                }
-                            }
-                            .launchIn(coroutineScope)
+                        viewModel.resetPassword(emailValue)
                     },
                     enabled = emailValue.isNotBlank() && !isLoading,
                     shape = RoundedCornerShape(12.dp),

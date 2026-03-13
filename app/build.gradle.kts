@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -52,6 +54,7 @@ dependencies {
     implementation(projects.feature.profile.impl)
 
     implementation(projects.core.designsystem)
+    implementation(projects.core.data)
 
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
@@ -61,6 +64,10 @@ dependencies {
     implementation(libs.supabase.auth.kt)
 
     implementation(libs.ktor.client.okhttp)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -24,6 +26,7 @@ android {
 
 dependencies {
     implementation(projects.core.designsystem)
+    implementation(projects.core.data)
     implementation(projects.feature.auth.api)
 
     api(libs.androidx.navigation3.runtime)
@@ -49,4 +52,8 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+
+    implementation(libs.androidx.hilt.lifecycle.viewModelCompose)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 }
