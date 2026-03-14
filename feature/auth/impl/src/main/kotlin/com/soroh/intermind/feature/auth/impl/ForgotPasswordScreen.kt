@@ -1,153 +1,154 @@
 package com.soroh.intermind.feature.auth.impl
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.soroh.intermind.feature.auth.impl.components.AuthTextField
-import com.soroh.intermind.feature.auth.impl.components.Gradient
+import com.soroh.intermind.core.designsystem.component.ThemeDevicePreviews
+import com.soroh.intermind.core.designsystem.theme.InterMindTheme
+import com.soroh.intermind.feature.auth.api.R
+import com.soroh.intermind.feature.auth.impl.components.AuthActionButton
+import com.soroh.intermind.feature.auth.impl.components.AuthContent
+import com.soroh.intermind.feature.auth.impl.components.AuthForm
+import com.soroh.intermind.feature.auth.impl.components.AuthTextButton
+import com.soroh.intermind.feature.auth.impl.model.AuthField
 
 @Composable
-fun ForgotPasswordScreen(
+internal fun ForgotPasswordScreen(
     onNavigateBack: () -> Unit = {},
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    var emailValue by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    var isEmailSent by remember { mutableStateOf(false) }
+    val state by viewModel.uiState.collectAsState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceContainerLowest),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        Gradient()
+    ForgotPasswordScreen(
+        state = state,
+        onEmailChange = viewModel::onEmailChange,
+        onSendClick = viewModel::forgotPassword,
+        onResendClick = viewModel::resendResetEmail,
+        onNavigateBack = onNavigateBack
+    )
+}
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp)
-                .padding(top = 60.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Кнопка назад
-            Box(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                IconButton(
-                    onClick = onNavigateBack,
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+@Composable
+private fun ForgotPasswordScreen(
+    modifier: Modifier = Modifier,
+    state: AuthUiState,
+    onEmailChange: (String) -> Unit,
+    onSendClick: () -> Unit,
+    onResendClick: () -> Unit,
+    onNavigateBack: () -> Unit,
+) {
+    AuthContent(
+        modifier = modifier,
+        title = if (state.isEmailSent) {
+            stringResource(R.string.feature_auth_api_forgot_password_title_sent)
+        } else {
+            stringResource(R.string.feature_auth_api_forgot_password_title)
+        },
+        subtitle = if (state.isEmailSent) {
+            stringResource(R.string.feature_auth_api_forgot_password_subtitle_sent)
+        } else {
+            stringResource(R.string.feature_auth_api_forgot_password_subtitle)
+        },
+        onNavigateBack = onNavigateBack,
+        content = {
+            if (!state.isEmailSent) {
+                AuthForm(
+                    fields = listOf(
+                        AuthField.Email(
+                            value = state.email,
+                            onValueChange = onEmailChange,
+                            isError = state.emailError != null,
+                            supportingText = state.emailError
+                        )
                     )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // Заголовок
-            Text(
-                text = if (isEmailSent) "Check Your Email" else "Forgot Password",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = if (isEmailSent) {
-                    "We've sent a password reset link to your email"
-                } else {
-                    "Enter your email address and we'll send you a link to reset your password"
-                },
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            if (!isEmailSent) {
-                // Поле email
-                AuthTextField(
-                    value = emailValue,
-                    onValueChange = { emailValue = it },
-                    label = "Email",
-                    imeAction = ImeAction.Done,
-                    keyboardType = KeyboardType.Email,
-                    onImeAction = { },
-                    modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(Modifier.height(32.dp))
 
-                // Кнопка отправки
-                Button(
-                    onClick = {
-                        viewModel.forgotPassword(emailValue)
-                        isEmailSent = true
-                    },
-                    enabled = emailValue.isNotBlank() && !isLoading,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Text(
-                            text = "Send Reset Link",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
+                AuthActionButton(
+                    text = stringResource(R.string.feature_auth_api_forgot_password_button),
+                    isLoading = state.isLoading,
+                    enabled = state.email.isNotBlank(),
+                    onClick = onSendClick
+                )
             } else {
                 Spacer(modifier = Modifier.height(32.dp))
 
-                TextButton(onClick = { isEmailSent = false }) {
-                    Text(
-                        text = "Send again",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                AuthTextButton(
+                    text = stringResource(R.string.feature_auth_api_forgot_password_resend),
+                    onClick = onResendClick
+                )
             }
+        }
+    ) { /* No Footer for this screen */ }
+}
+
+@ThemeDevicePreviews
+@Composable
+private fun ForgotPasswordScreenPreview() {
+    InterMindTheme {
+        Surface {
+            ForgotPasswordScreen(
+                state = AuthUiState(
+                    email = "user@example.com",
+                    isLoading = false,
+                    emailError = null,
+                    isEmailSent = false
+                ),
+                onEmailChange = {},
+                onSendClick = {},
+                onResendClick = {},
+                onNavigateBack = {}
+            )
+        }
+    }
+}
+
+@ThemeDevicePreviews
+@Composable
+private fun ForgotPasswordScreenErrorPreview() {
+    InterMindTheme {
+        Surface {
+            ForgotPasswordScreen(
+                state = AuthUiState(
+                    email = "invalid-email",
+                    isLoading = false,
+                    emailError = "Пользователь с таким email не найден",
+                    isEmailSent = false
+                ),
+                onEmailChange = {},
+                onSendClick = {},
+                onResendClick = {},
+                onNavigateBack = {}
+            )
+        }
+    }
+}
+
+@ThemeDevicePreviews
+@Composable
+private fun ForgotPasswordScreenEmailSentPreview() {
+    InterMindTheme {
+        Surface {
+            ForgotPasswordScreen(
+                state = AuthUiState(
+                    email = "user@example.com",
+                    isLoading = false,
+                    emailError = null,
+                    isEmailSent = true
+                ),
+                onEmailChange = {},
+                onSendClick = {},
+                onResendClick = {},
+                onNavigateBack = {}
+            )
         }
     }
 }

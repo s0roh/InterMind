@@ -10,7 +10,6 @@ fun EntryProviderScope<NavKey>.resetPasswordEntry(backStack: NavBackStack<NavKey
     entry<ResetPasswordNavKey> {
         ResetPasswordScreen(
             onNavigateBack = { backStack.removeAt(backStack.lastIndex) },
-            onPasswordResetSuccess = { backStack.removeAt(backStack.lastIndex) }
         )
     }
 }

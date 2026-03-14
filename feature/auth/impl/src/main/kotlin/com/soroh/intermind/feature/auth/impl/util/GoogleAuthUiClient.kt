@@ -9,15 +9,14 @@ import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.soroh.intermind.feature.auth.impl.BuildConfig
 
 internal object GoogleAuthUiClient {
-
-    private const val WEB_CLIENT_ID = "23416541006-p70terfeldmsdoemrdv3g9e8i7gvvj0r.apps.googleusercontent.com"
 
     suspend fun signIn(context: Context): String? {
         return try {
             val googleIdOption = GetGoogleIdOption.Builder()
-                .setServerClientId(WEB_CLIENT_ID)
+                .setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT_ID)
                 .setFilterByAuthorizedAccounts(false)
                 .setAutoSelectEnabled(true)
                 .build()

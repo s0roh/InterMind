@@ -9,6 +9,6 @@ import com.soroh.intermind.feature.auth.impl.RegistrationScreen
 
 fun EntryProviderScope<NavKey>.registrationEntry(backStack: NavBackStack<NavKey>) {
     entry<RegistrationNavKey> {
-        RegistrationScreen(onNavigateToLogin = { backStack.add(LoginNavKey) })
+        RegistrationScreen(onNavigateToLogin = { backStack.navigateSingleTop(LoginNavKey) })
     }
 }

@@ -5,11 +5,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-
+import com.soroh.intermind.core.designsystem.component.ThemePreviews
+import com.soroh.intermind.core.designsystem.theme.InterMindTheme
 
 @Composable
 internal fun Gradient() {
@@ -27,4 +28,14 @@ internal fun Gradient() {
                 )
             )
     )
+}
+
+@ThemePreviews
+@Composable
+private fun GoogleSignInButtonPreview() {
+    InterMindTheme {
+        Surface {
+            Gradient()
+        }
+    }
 }

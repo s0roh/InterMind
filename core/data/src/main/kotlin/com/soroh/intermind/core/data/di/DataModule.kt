@@ -11,6 +11,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import javax.inject.Singleton
+import com.soroh.intermind.core.data.BuildConfig
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -26,8 +27,8 @@ interface DataModule {
         @Singleton
         fun provideSupabaseClient(): SupabaseClient {
             return createSupabaseClient(
-                supabaseUrl = "https://kmzvykougtykprzotyrr.supabase.co",
-                supabaseKey = "sb_publishable_xHIxDmCM8N9kgAsnzC7JrQ_VtbhJ_LJ"
+                supabaseUrl = BuildConfig.SUPABASE_URL,
+                supabaseKey = BuildConfig.SUPABASE_KEY
             ) {
                 install(Auth) {
                     host = "intermind.com"

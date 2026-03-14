@@ -11,8 +11,10 @@ import com.soroh.intermind.feature.auth.impl.LoginScreen
 fun EntryProviderScope<NavKey>.loginEntry(backStack: NavBackStack<NavKey>) {
     entry<LoginNavKey> {
         LoginScreen(
-            onNavigateToRegistration = { backStack.add(RegistrationNavKey) },
-            onNavigateToForgotPassword = { backStack.add(ForgotPasswordNavKey) }
+            onNavigateToRegistration = {
+                backStack.navigateSingleTop(RegistrationNavKey)
+            },
+            onNavigateToForgotPassword = { backStack.navigateSingleTop(ForgotPasswordNavKey) }
         )
     }
 }

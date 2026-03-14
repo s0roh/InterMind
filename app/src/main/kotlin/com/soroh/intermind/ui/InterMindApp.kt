@@ -41,7 +41,6 @@ fun InterMindApp(
         }
     ) { paddingValues ->
 
-// Провайдер всех экранов приложения
         val entryProvider = entryProvider<NavKey> {
             exploreEntry(navigator)
             decksEntry(navigator)
@@ -49,7 +48,6 @@ fun InterMindApp(
             profileEntry(navigator)
         }
 
-        // Отображаем текущий экран
         Box(
             modifier = Modifier
                 .fillMaxSize()

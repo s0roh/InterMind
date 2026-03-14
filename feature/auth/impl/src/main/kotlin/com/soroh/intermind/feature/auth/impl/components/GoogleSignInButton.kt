@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.soroh.intermind.feature.auth.impl.R
-
+import com.soroh.intermind.core.designsystem.component.ThemePreviews
+import com.soroh.intermind.core.designsystem.theme.InterMindTheme
+import com.soroh.intermind.feature.auth.api.R
 
 @Composable
 internal fun GoogleSignInButton(onClick: () -> Unit) {
@@ -24,7 +27,7 @@ internal fun GoogleSignInButton(onClick: () -> Unit) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Image(
-            painter = painterResource(R.drawable.ic_google),
+            painter = painterResource(R.drawable.feature_auth_api_ic_google),
             contentDescription = null,
             modifier = Modifier.size(24.dp)
         )
@@ -32,8 +35,18 @@ internal fun GoogleSignInButton(onClick: () -> Unit) {
         Spacer(modifier = Modifier.width(10.dp))
 
         Text(
-            text = "Sign In With Google",
+            text = stringResource(R.string.feature_auth_api_google_sign_in),
             modifier = Modifier.padding(vertical = 4.dp)
         )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun GoogleSignInButtonPreview() {
+    InterMindTheme {
+        Surface {
+            GoogleSignInButton(onClick = {})
+        }
     }
 }
