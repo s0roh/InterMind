@@ -26,4 +26,17 @@ rootProject.name = "InterMind"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 include(":app")
- 
+include(":core:data")
+include(":core:designsystem")
+include(":core:navigation")
+include(":feature:auth:api")
+include(":feature:auth:impl")
+include(":feature:decks:api")
+include(":feature:decks:impl")
+include(":feature:explore:api")
+include(":feature:explore:impl")
+include(":feature:history:api")
+include(":feature:history:impl")
+include(":feature:profile:api")
+include(":feature:profile:impl")
+
