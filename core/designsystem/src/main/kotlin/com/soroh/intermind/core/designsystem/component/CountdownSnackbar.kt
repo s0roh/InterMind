@@ -15,7 +15,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarDefaults
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.soroh.intermind.core.designsystem.theme.InterMindTheme
 import kotlinx.coroutines.delay
 
 /**
@@ -162,6 +165,30 @@ private fun SnackbarCountdown(
                 fontSize = 12.sp,
                 color = color
             )
+        )
+    }
+}
+
+@ThemePreviews
+@Composable
+fun CountdownSnackbarPreview() {
+    InterMindTheme {
+        val previewSnackbarData = object : SnackbarData {
+            override val visuals: SnackbarVisuals = object : SnackbarVisuals {
+                override val message: String = "Колода удалена"
+                override val actionLabel: String = "Отмена"
+                override val withDismissAction: Boolean = true
+                override val duration: SnackbarDuration = SnackbarDuration.Short
+            }
+
+            override fun performAction() {}
+            override fun dismiss() {}
+        }
+
+        CountdownSnackbar(
+            snackbarData = previewSnackbarData,
+            durationInSeconds = 5,
+            modifier = Modifier.padding(16.dp)
         )
     }
 }
