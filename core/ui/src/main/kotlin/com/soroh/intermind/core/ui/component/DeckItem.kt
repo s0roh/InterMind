@@ -136,8 +136,8 @@ private fun DeckVisibility(isPublic: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             painter = painterResource(
-                if (isPublic) InterMindIcons.Public
-                else InterMindIcons.Private
+                if (isPublic) InterMindIcons.PublicStatus
+                else InterMindIcons.PrivateStatus
             ),
             modifier = Modifier.size(16.dp),
             tint = Color.Gray,

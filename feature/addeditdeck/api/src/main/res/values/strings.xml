@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="deck_creation">Создание колоды</string>
+    <string name="edit_deck">Изменить колоду</string>
+    <string name="name">Название</string>
+</resources>

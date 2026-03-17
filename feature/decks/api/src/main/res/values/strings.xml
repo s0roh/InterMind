@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_decks_api_title">Колоды</string>
+    <string name="feature_decks_api_my_decks">Мои колоды</string>
+    <string name="feature_decks_api_create_deck">Создать колоду</string>
+</resources>

@@ -21,7 +21,7 @@ import javax.inject.Inject
  * Implements a [AuthRepository]
  */
 class AuthRepositoryImpl @Inject constructor(
-    private val supabaseClient: SupabaseClient
+    private val supabase: SupabaseClient
 ) : AuthRepository {
 
     override fun signUpWithEmail(
@@ -29,7 +29,7 @@ class AuthRepositoryImpl @Inject constructor(
         email: String,
         password: String
     ): Flow<AuthResponse> = authResponseFlow {
-        supabaseClient.auth.signUpWith(Email) {
+        supabase.auth.signUpWith(Email) {
             this.email = email
             this.password = password
             data = buildJsonObject {
@@ -43,7 +43,7 @@ class AuthRepositoryImpl @Inject constructor(
         email: String,
         password: String
     ): Flow<AuthResponse> = authResponseFlow {
-        supabaseClient.auth.signInWith(Email) {
+        supabase.auth.signInWith(Email) {
             this.email = email
             this.password = password
         }
@@ -52,7 +52,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override fun loginWithGoogleToken(googleIdToken: String): Flow<AuthResponse> =
         authResponseFlow {
-            supabaseClient.auth.signInWith(IDToken) {
+            supabase.auth.signInWith(IDToken) {
                 idToken = googleIdToken
                 provider = Google
             }
@@ -60,7 +60,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
 
     override fun resetPassword(email: String): Flow<AuthResponse> = authResponseFlow {
-        supabaseClient.auth.resetPasswordForEmail(
+        supabase.auth.resetPasswordForEmail(
             email = email,
             redirectUrl = "app://intermind.com/reset-password"
         )
@@ -68,14 +68,14 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override fun updatePassword(newPassword: String): Flow<AuthResponse> = authResponseFlow {
-        supabaseClient.auth.updateUser {
+        supabase.auth.updateUser {
             password = newPassword
         }
         emit(AuthResponse.Success)
     }
 
     override fun signOut(): Flow<AuthResponse> = authResponseFlow {
-        supabaseClient.auth.signOut()
+        supabase.auth.signOut()
         emit(AuthResponse.Success)
     }
 

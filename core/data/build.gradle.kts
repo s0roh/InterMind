@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.dagger.hilt.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -36,6 +37,8 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.domain)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
@@ -45,8 +48,12 @@ dependencies {
 
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.auth.kt)
+    implementation(libs.supabase.postgrest.kt)
+    implementation(libs.supabase.storage.kt)
 
     implementation(libs.ktor.client.okhttp)
+
+    implementation(libs.kotlinx.serialization.core)
 
     testImplementation(libs.junit)
 }
