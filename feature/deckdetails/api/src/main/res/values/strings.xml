@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_deckdetails_api_error_loading_deck">Не удалось загрузить колоду</string>
+    <string name="feature_deckdetails_api_edelete_deck_title">Удалить колоду?</string>
+    <string name="feature_deckdetails_api_delete_deck_message">В случае удаления, колода не сможет быть восстановлена</string>
+    <string name="feature_deckdetails_api_reaffirm">Удалить</string>
+    <string name="feature_deckdetails_api_alert_dialog_private_title">Сделать колоду приватной?</string>
+    <string name="feature_deckdetails_api_alert_dialog_private_message">После изменения приватности только Вы сможете видеть и использовать эту колоду. Другие пользователи потеряют доступ к ней.</string>
+    <string name="feature_deckdetails_api_alert_dialog_public_title">Опубликовать колоду?</string>
+    <string name="feature_deckdetails_api_alert_dialog_public_message">После публикации все пользователи смогут видеть содержимое Вашей колоды и запланировать тренировку на ней.</string>
+    <string name="feature_deckdetails_api_confirm">Подтвердить</string>
+    <string name="feature_deckdetails_api_public_mark">Публичная</string>
+    <string name="feature_deckdetails_api_private_mark">Приватная</string>
+    <string name="feature_deckdetails_api_schedule_train">Запланировать тренировку</string>
+    <string name="feature_deckdetails_api_open_training_plan">Открыть план тренировок</string>
+    <string name="feature_deckdetails_api_show_cards">Показать карточки</string>
+    <string name="feature_deckdetails_api_training_scheduled">Тренировка запланирована</string>
+    <string name="feature_deckdetails_api_start_train">Начать тренировку</string>
+    <string name="feature_deckdetails_api_no_cards_placeholder">Здесь пока нет карточек</string>
+    <string name="feature_deckdetails_api_tap_the_card_to_see_the_answer">Коснитесь карточки, чтобы увидеть ответ</string>
+    <string name="feature_deckdetails_api_add_card">Добавить карточку</string>
+    <string name="feature_deckdetails_api_menu">Меню</string>
+    <string name="feature_deckdetails_api_edit">Изменить</string>
+    <string name="feature_deckdetails_api_delete">Удалить</string>
+    <string name="feature_deckdetails_api_image_of_card">Картинка карточки</string>
+    <string name="feature_deckdetails_api_answer">Ответ:</string>
+</resources>

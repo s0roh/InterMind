@@ -20,6 +20,7 @@ import com.soroh.intermind.core.navigation.Navigator
 import com.soroh.intermind.core.navigation.rememberNavigationState
 import com.soroh.intermind.core.navigation.toEntries
 import com.soroh.intermind.feature.addeditdeck.impl.navigation.addEditDeckEntry
+import com.soroh.intermind.feature.deckdetails.impl.navigation.deckDetailsEntry
 import com.soroh.intermind.feature.decks.impl.navigation.decksEntry
 import com.soroh.intermind.feature.explore.api.navigation.ExploreNavKey
 import com.soroh.intermind.feature.explore.impl.navigation.exploreEntry
@@ -33,14 +34,17 @@ fun InterMindApp(
 ) {
     val navigationState = rememberNavigationState(ExploreNavKey, TOP_LEVEL_NAV_ITEMS.keys)
     val navigator = remember { Navigator(navigationState) }
+    val shouldShowBottomBar = navigationState.currentKey in TOP_LEVEL_NAV_ITEMS.keys
 
     Scaffold(
         modifier = modifier,
         bottomBar = {
-            MainBottomNavigation(
-                navigationState = navigationState,
-                onNavigate = { key -> navigator.navigate(key) }
-            )
+            if (shouldShowBottomBar) {
+                MainBottomNavigation(
+                    navigationState = navigationState,
+                    onNavigate = { key -> navigator.navigate(key) }
+                )
+            }
         }
     ) { paddingValues ->
 
@@ -50,6 +54,7 @@ fun InterMindApp(
             historyEntry(navigator)
             profileEntry(navigator)
             addEditDeckEntry(navigator)
+            deckDetailsEntry(navigator)
         }
 
         Box(

@@ -35,7 +35,7 @@ import com.soroh.intermind.core.designsystem.component.TextFieldWithError
 import com.soroh.intermind.feature.addeditdeck.api.R
 
 @Composable
-fun  AddEditDeckScreen(
+fun AddEditDeckScreen(
     viewModel: AddEditDeckViewModel,
     isEditMode: Boolean = false,
     onBackClick: () -> Unit,
@@ -54,16 +54,17 @@ fun  AddEditDeckScreen(
             }
         }
     }
+
     Scaffold(
         topBar = {
             CenteredTopAppBar(
-                title = if (isEditMode)stringResource(R.string.edit_deck)
-                else stringResource(R.string.deck_creation),
+                title = if (isEditMode) stringResource(R.string.feature_addeditdeck_api_edit_deck)
+                else stringResource(R.string.feature_addeditdeck_api_deck_creation),
                 navigationIconType = NavigationIconType.BACK,
                 onNavigationClick = onBackClick
             )
         }
-    ) {paddingValues ->
+    ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -112,7 +113,7 @@ private fun AddEditDeckForm(
         TextFieldWithError(
             value = uiState.name,
             onValueChange = onNameChange,
-            labelResId = R.string.name,
+            labelResId = R.string.feature_addeditdeck_api_name,
             error = uiState.nameError,
             imeAction = ImeAction.Done,
             onImeAction = {
@@ -129,7 +130,7 @@ private fun AddEditDeckForm(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Публичная колода")
+            Text(stringResource(R.string.feature_addeditdeck_api_public_deck))
             Switch(
                 checked = uiState.isPublic,
                 onCheckedChange = onPublicChange
@@ -143,7 +144,10 @@ private fun AddEditDeckForm(
             enabled = uiState.isSaveButtonEnabled && !uiState.isLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (isEditMode) "Сохранить" else "Добавить")
+            Text(
+                if (isEditMode) stringResource(R.string.feature_addeditdeck_api_save)
+                else stringResource(R.string.feature_addeditdeck_api_edit)
+            )
         }
     }
 }

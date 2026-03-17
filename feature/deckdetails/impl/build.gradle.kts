@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.soroh.intermind.feature.decks.impl"
+    namespace = "com.soroh.intermind.feature.deckdetails.impl"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -26,9 +26,8 @@ android {
 
 dependencies {
     implementation(projects.core.designsystem)
-    implementation(projects.feature.decks.api)
-    implementation(projects.feature.addeditdeck.api)
     implementation(projects.feature.deckdetails.api)
+    implementation(projects.feature.addeditdeck.api)
     implementation(projects.core.ui)
     implementation(projects.core.data)
     implementation(projects.core.domain)
@@ -48,4 +47,7 @@ dependencies {
     implementation(libs.androidx.hilt.lifecycle.viewModelCompose)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 }

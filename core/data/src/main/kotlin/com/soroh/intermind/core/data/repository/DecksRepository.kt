@@ -16,6 +16,8 @@ interface DecksRepository {
 
     suspend fun getDeckById(deckId: String): Deck?
 
+    suspend fun isDeckOwner(deckId: String): Boolean
+
     suspend fun insertDeck(deck: Deck)
 
     suspend fun updateDeck(deck: Deck)

@@ -54,6 +54,8 @@ dependencies {
     implementation(projects.feature.profile.impl)
     implementation(projects.feature.addeditdeck.api)
     implementation(projects.feature.addeditdeck.impl)
+    implementation(projects.feature.deckdetails.api)
+    implementation(projects.feature.deckdetails.impl)
 
     implementation(projects.core.designsystem)
     implementation(projects.core.data)

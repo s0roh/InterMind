@@ -1,11 +1,10 @@
 package com.soroh.intermind.feature.addeditdeck.impl
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soroh.intermind.core.data.repository.DecksRepository
 import com.soroh.intermind.core.domain.entity.Deck
-import com.soroh.intermind.feature.addeditdeck.api.AddEditDeckNavKey
+import com.soroh.intermind.feature.addeditdeck.api.navigation.AddEditDeckNavKey
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -21,7 +20,6 @@ import java.util.UUID
 
 @HiltViewModel(assistedFactory = AddEditDeckViewModel.Factory::class)
 class AddEditDeckViewModel @AssistedInject constructor(
-    private val savedStateHandle: SavedStateHandle,
     private val decksRepository: DecksRepository,
     @Assisted val key: AddEditDeckNavKey,
 ) : ViewModel() {
@@ -85,7 +83,6 @@ class AddEditDeckViewModel @AssistedInject constructor(
                         id = UUID.randomUUID().toString(),
                         name = currentState.name.trim(),
                         isPublic = currentState.isPublic,
-                        // Устанавливаем дефолтные значения для новой колоды
                         cardsCount = 0,
                         likes = 0,
                         trainings = 0
@@ -109,7 +106,6 @@ class AddEditDeckViewModel @AssistedInject constructor(
             }
         }
     }
-
 
     @AssistedFactory
     interface Factory {

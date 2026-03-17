@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="deck_creation">Создание колоды</string>
-    <string name="edit_deck">Изменить колоду</string>
-    <string name="name">Название</string>
+    <string name="feature_addeditdeck_api_deck_creation">Создание колоды</string>
+    <string name="feature_addeditdeck_api_edit_deck">Изменить колоду</string>
+    <string name="feature_addeditdeck_api_name">Название</string>
+    <string name="feature_addeditdeck_api_public_deck">Публичная колода</string>
+    <string name="feature_addeditdeck_api_save">Сохранить</string>
+    <string name="feature_addeditdeck_api_edit">Изменить</string>
 </resources>

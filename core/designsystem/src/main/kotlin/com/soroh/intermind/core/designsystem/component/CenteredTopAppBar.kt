@@ -36,13 +36,11 @@ fun CenteredTopAppBar(
     showActions: Boolean? = null,
     containerColor: Color? = null,
     onNavigationClick: (() -> Unit)? = null,
-    onRenameDeck: (() -> Unit)? = null,
-    onChangePrivacy: (() -> Unit)? = null,
+    onEditDeck: (() -> Unit)? = null,
     onOwner: (() -> Unit)? = null,
     onDeckStatistic: (() -> Unit)? = null,
     onTrainingSettings: (() -> Unit)? = null,
     onDeleteDeck: (() -> Unit)? = null,
-    isPublic: Boolean? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -89,12 +87,20 @@ fun CenteredTopAppBar(
             }
         },
         actions = {
-            if (onRenameDeck != null || onChangePrivacy != null || onTrainingSettings != null || onDeleteDeck != null) {
+            if (onEditDeck != null || onTrainingSettings != null || onDeleteDeck != null) {
+
+                IconButton(onClick = { expanded = true }) {
+                    Icon(
+                        painterResource(InterMindIcons.Menu),
+                        contentDescription = "Actions Icon"
+                    )
+                }
+
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     if (showActions == true) {
-                        onRenameDeck?.let {
+                        onEditDeck?.let {
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.edit_name)) },
+                                text = { Text(stringResource(R.string.edit)) },
                                 onClick = {
                                     expanded = false
                                     it()
@@ -102,30 +108,6 @@ fun CenteredTopAppBar(
                                 leadingIcon = {
                                     Icon(
                                         painterResource(R.drawable.ic_edit),
-                                        contentDescription = null
-                                    )
-                                }
-                            )
-                        }
-                    }
-                    if (showActions == true) {
-                        onChangePrivacy?.let {
-                            DropdownMenuItem(
-                                text = {
-                                    isPublic?.let {
-                                        Text(
-                                            if (isPublic) stringResource(R.string.make_private)
-                                            else stringResource(R.string.make_public)
-                                        )
-                                    }
-                                },
-                                onClick = {
-                                    expanded = false
-                                    it()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        painterResource(R.drawable.ic_outbox),
                                         contentDescription = null
                                     )
                                 }

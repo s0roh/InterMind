@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.storage.storage
 import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -64,6 +65,19 @@ class DecksRepositoryImpl @Inject constructor(
             filter { eq("id", deckId) }
         }
         return response.decodeSingleOrNull<DeckDto>()?.toDomain()
+    }
+
+    override suspend fun isDeckOwner(deckId: String): Boolean {
+        val userId = getCurrentUserId() ?: return false
+
+        val response = decksTable.select(columns = Columns.raw("user_id")) {
+            filter {
+                eq("id", deckId)
+                eq("user_id", userId)
+            }
+        }
+
+        return response.data != "[]" && response.decodeList<Map<String, String>>().isNotEmpty()
     }
 
     override suspend fun insertDeck(deck: Deck) {
