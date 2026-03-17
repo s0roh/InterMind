@@ -119,7 +119,6 @@ data class AddEditDeckUiState(
     val nameError: String? = null,
     val isSaveButtonEnabled: Boolean = true,
     val isLoading: Boolean = false,
-
     val originalDeck: Deck? = null
 )
 

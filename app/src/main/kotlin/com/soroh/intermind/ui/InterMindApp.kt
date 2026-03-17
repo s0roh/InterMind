@@ -19,6 +19,7 @@ import com.soroh.intermind.core.navigation.NavigationState
 import com.soroh.intermind.core.navigation.Navigator
 import com.soroh.intermind.core.navigation.rememberNavigationState
 import com.soroh.intermind.core.navigation.toEntries
+import com.soroh.intermind.fearure.addeditcard.impl.navigation.addEditCardEntry
 import com.soroh.intermind.feature.addeditdeck.impl.navigation.addEditDeckEntry
 import com.soroh.intermind.feature.deckdetails.impl.navigation.deckDetailsEntry
 import com.soroh.intermind.feature.decks.impl.navigation.decksEntry
@@ -54,6 +55,7 @@ fun InterMindApp(
             historyEntry(navigator)
             profileEntry(navigator)
             addEditDeckEntry(navigator)
+            addEditCardEntry(navigator)
             deckDetailsEntry(navigator)
         }
 

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.soroh.intermind.feature.deckdetails.impl"
+    namespace = "com.soroh.intermind.fearure.addeditcard.impl"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -26,14 +26,13 @@ android {
 
 dependencies {
     implementation(projects.core.designsystem)
-    implementation(projects.feature.deckdetails.api)
-    implementation(projects.feature.addeditdeck.api)
     implementation(projects.feature.addeditcard.api)
     implementation(projects.core.ui)
     implementation(projects.core.data)
     implementation(projects.core.domain)
 
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.material3)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
@@ -51,4 +50,6 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+
+    implementation(libs.android.image.cropper)
 }

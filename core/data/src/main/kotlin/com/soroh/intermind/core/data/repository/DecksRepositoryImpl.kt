@@ -2,6 +2,8 @@ package com.soroh.intermind.core.data.repository
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
+import androidx.core.net.toUri
 import com.soroh.intermind.core.domain.entity.Card
 import com.soroh.intermind.core.domain.entity.Deck
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,7 +28,7 @@ import kotlinx.serialization.Serializable
  * Implements a [DecksRepository]
  */
 class DecksRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val supabase: SupabaseClient
 ) : DecksRepository {
 
@@ -146,7 +148,19 @@ class DecksRepositoryImpl @Inject constructor(
         deckId: String,
         cardId: String
     ): Uri? {
-        TODO("Not yet implemented")
+        return try {
+            val card = getCardById(cardId)
+            val path = card?.picturePath
+
+            if (path.isNullOrBlank()) {
+                return null
+            }
+
+            val publicUrl = supabase.storage["cards_pics"].publicUrl(path)
+            publicUrl.toUri()
+        } catch (_: Exception) {
+            null
+        }
     }
 
     override suspend fun insertCard(
@@ -175,47 +189,63 @@ class DecksRepositoryImpl @Inject constructor(
         cardId: String,
         pictureUri: Uri
     ) {
-        val bytes = context.contentResolver.openInputStream(pictureUri)?.use {
-            it.readBytes()
-        } ?: throw IllegalArgumentException("Cannot read URI")
+        val userId = getCurrentUserId()
+            ?: throw IllegalStateException("Пользователь не авторизован (userId is null)")
 
-        val userId = getCurrentUserId() ?: return
+        val bytes = try {
+            context.contentResolver.openInputStream(pictureUri)?.use { it.readBytes() }
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Не удалось прочитать изображение: ${e.message}")
+        } ?: throw IllegalArgumentException("Пустой InputStream для URI")
+
         val fileName = "$userId/$deckId/${cardId}_${System.currentTimeMillis()}.jpg"
 
         val bucket = supabase.storage["cards_pics"]
 
-        bucket.upload(path = fileName, data = bytes) {
-            upsert = true
-        }
+        try {
+            bucket.upload(path = fileName, data = bytes) { upsert = true }
 
-        cardsTable.update(
-            {
-                set("picture_path", fileName)
+            cardsTable.update({ set("picture_path", fileName) }) {
+                filter { eq("id", cardId) }
             }
-        ) {
-            filter { eq("id", cardId) }
+        } catch (e: Exception) {
+            throw e
         }
     }
 
     override suspend fun deleteCard(card: Card) {
-        cardsTable.delete {
-            filter { eq("id", card.id) }
-        }
+        cardsTable.delete { filter { eq("id", card.id) } }
     }
 
     override suspend fun deleteCardPicture(deckId: String, cardId: String) {
         val card = getCardById(cardId)
-        val path = card?.picturePath ?: return
+        val path = card?.picturePath
 
-        supabase.storage["cards_pics"].delete(path)
+        if (path == null) {
+            Log.w(TAG, "deleteCardPicture: picture_path уже равен null в БД. Удалять из Storage нечего.")
+        } else {
+            Log.d(TAG, "deleteCardPicture: Удаляю файл из Storage по пути: $path")
+            try {
+                supabase.storage["cards_pics"].delete(path)
+                Log.d(TAG, "deleteCardPicture: Файл успешно удален из Storage")
+            } catch (e: Exception) {
+                Log.e(TAG, e.localizedMessage)
+            }
+        }
 
+        Log.d(TAG, "deleteCardPicture: Обнуляю picture_path в БД...")
         cardsTable.update({ set<String>("picture_path", null) }) {
             filter { eq("id", cardId) }
         }
+        Log.d(TAG, "deleteCardPicture: Успешно")
     }
 
     private suspend fun getCurrentUserId(): String? {
         return supabase.auth.sessionManager.loadSession()?.user?.id
+    }
+
+    companion object {
+        private const val TAG = "DecksRepository"
     }
 }
 

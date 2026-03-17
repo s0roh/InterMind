@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_addeditcard_api_card_creation">Создание карточки</string>
+    <string name="feature_addeditcard_api_edit_card">Изменить карточку</string>
+    <string name="feature_addeditcard_api_add_card">Добавить карточку</string>
+    <string name="feature_addeditcard_api_question">Вопрос</string>
+    <string name="feature_addeditcard_api_add_image">Добавить картинку</string>
+    <string name="feature_addeditcard_api_answer">Ответ</string>
+    <string name="feature_addeditcard_api_add_wrong_answer">Добавить неправильный ответ</string>
+    <string name="feature_addeditcard_api_wrong_answers_hint">Если не указаны неправильные ответы, они будут автоматически подбираться из других вопросов</string>
+    <string name="feature_addeditcard_api_wrong_answer">Неправильный ответ</string>
+    <string name="feature_addeditcard_api_delete">Удалить</string>
+    <string name="feature_addeditcard_api_image_of_card">Картинка карточки</string>
+</resources>

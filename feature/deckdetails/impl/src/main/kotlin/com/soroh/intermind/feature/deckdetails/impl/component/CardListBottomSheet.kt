@@ -38,7 +38,7 @@ fun CardListBottomSheet(
     listState: LazyListState,
     onEditCard: (deckId: String, cardId: String) -> Unit,
     onDeleteCard: (Card) -> Unit,
-    onAddCardClick: () -> Unit,
+    onAddCardClick: (deckId: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     ModalBottomSheet(
@@ -94,7 +94,7 @@ fun CardListBottomSheet(
                     onClick = {
                         coroutineScope.launch {
                             sheetState.hide()
-                            onAddCardClick()
+                            onAddCardClick(state.deck.id)
                         }
                     },
                     modifier = Modifier

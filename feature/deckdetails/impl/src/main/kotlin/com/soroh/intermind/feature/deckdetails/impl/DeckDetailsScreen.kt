@@ -50,6 +50,8 @@ fun DeckDetailsScreen(
     viewModel: DeckDetailsViewModel,
     onBackClick: () -> Unit,
     onEditDeckClick: (deckId: String) -> Unit = {},
+    onEditCardClick: (deckId:String, cardId: String?) -> Unit,
+    onAddCardClick: (deckId: String) -> Unit,
     onDeleteDeck: () -> Unit,
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,8 +80,8 @@ fun DeckDetailsScreen(
                 },
                 onEditDeckClick = onEditDeckClick,
                 onDeleteCard = {},
-                onAddCardClick = {},
-                onEditCard = { deckId, cardId -> }
+                onAddCardClick = onAddCardClick,
+                onEditCard = onEditCardClick
             )
         }
     }
@@ -94,7 +96,7 @@ private fun DeckDetailsContent(
     onDeleteDeck: () -> Unit,
     onEditDeckClick: (String) -> Unit,
     onDeleteCard: (Card) -> Unit,
-    onAddCardClick: () -> Unit,
+    onAddCardClick: (deckId: String) -> Unit,
     onEditCard: (deckId: String, cardId: String?) -> Unit,
 ) {
     var isBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
