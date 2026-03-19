@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="delete">Удалить</string>
+    <string name="train_settings">Настройки тренировки</string>
+    <string name="statistic">Статистика</string>
+    <string name="go_to_owner">Перейти к владельцу</string>
+    <string name="make_private">Сделать приватной</string>
+    <string name="make_public">Сделать публичной</string>
+    <string name="edit">Изменить</string>
+    <string name="cancel">Отмена</string>
+</resources>

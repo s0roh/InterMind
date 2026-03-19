@@ -52,6 +52,12 @@ dependencies {
     implementation(projects.feature.history.impl)
     implementation(projects.feature.profile.api)
     implementation(projects.feature.profile.impl)
+    implementation(projects.feature.addeditdeck.api)
+    implementation(projects.feature.addeditdeck.impl)
+    implementation(projects.feature.deckdetails.api)
+    implementation(projects.feature.deckdetails.impl)
+    implementation(projects.feature.addeditcard.api)
+    implementation(projects.feature.addeditcard.impl)
 
     implementation(projects.core.designsystem)
     implementation(projects.core.data)
@@ -87,4 +93,6 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    implementation(libs.android.image.cropper)
 }

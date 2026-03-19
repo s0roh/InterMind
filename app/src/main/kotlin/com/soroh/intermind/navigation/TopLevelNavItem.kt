@@ -1,20 +1,17 @@
 package com.soroh.intermind.navigation
 
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmarks
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Upcoming
-import androidx.compose.material.icons.outlined.Bookmarks
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Upcoming
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.soroh.intermind.R
+import com.soroh.intermind.core.designsystem.icon.InterMindIcons
 import com.soroh.intermind.feature.decks.api.navigation.DecksNavKey
 import com.soroh.intermind.feature.explore.api.navigation.ExploreNavKey
 import com.soroh.intermind.feature.history.api.navigation.HistoryNavKey
 import com.soroh.intermind.feature.profile.api.navigation.ProfileNavKey
+import com.soroh.intermind.feature.decks.api.R as decksR
+import com.soroh.intermind.feature.explore.api.R as exploreR
+import com.soroh.intermind.feature.history.api.R as historyR
+import com.soroh.intermind.feature.profile.api.R as profileR
 
 /**
  * Type for the top level navigation items in the application. Contains UI information about the
@@ -30,38 +27,36 @@ import com.soroh.intermind.feature.profile.api.navigation.ProfileNavKey
 data class TopLevelNavItem(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
-    val iconText: String,
-    val titleText: String,
-//    @StringRes val iconTextId: Int,
-//    @StringRes val titleTextId: Int,
+    @param:StringRes val iconTextId: Int,
+    @param:StringRes val titleTextId: Int,
 )
 
 val EXPLORE = TopLevelNavItem(
-    selectedIcon = Icons.Filled.Upcoming,
-    unselectedIcon = Icons.Outlined.Upcoming,
-    iconText = "Explore",
-    titleText = "InterMind",
+    selectedIcon = InterMindIcons.FilledPublic,
+    unselectedIcon = InterMindIcons.OutlinedPublic,
+    iconTextId = exploreR.string.feature_explore_api_title,
+    titleTextId = R.string.app_name,
 )
 
 val DECKS = TopLevelNavItem(
-    selectedIcon = Icons.Filled.Bookmarks,
-    unselectedIcon = Icons.Outlined.Bookmarks,
-    iconText = "Decks",
-    titleText = "Decks",
+    selectedIcon = InterMindIcons.FilledLocal,
+    unselectedIcon = InterMindIcons.OutlinedLocal,
+    iconTextId = decksR.string.feature_decks_api_title,
+    titleTextId = decksR.string.feature_decks_api_title,
 )
 
 val HISTORY = TopLevelNavItem(
-    selectedIcon = Icons.Filled.History,
-    unselectedIcon = Icons.Outlined.History,
-    iconText = "History",
-    titleText = "History",
+    selectedIcon = InterMindIcons.FilledHistory,
+    unselectedIcon = InterMindIcons.OutlinedHistory,
+    iconTextId = historyR.string.feature_history_api_title,
+    titleTextId = historyR.string.feature_history_api_title,
 )
 
 val PROFILE = TopLevelNavItem(
-    selectedIcon = Icons.Filled.Person,
-    unselectedIcon = Icons.Outlined.Person,
-    iconText = "Profile",
-    titleText = "Profile",
+    selectedIcon = InterMindIcons.FilledPerson,
+    unselectedIcon = InterMindIcons.OutlinedPerson,
+    iconTextId = profileR.string.feature_profile_api_title,
+    titleTextId = profileR.string.feature_profile_api_title,
 )
 
 val TOP_LEVEL_NAV_ITEMS = mapOf(
