@@ -5,6 +5,8 @@ import com.soroh.intermind.core.data.repository.AuthRepository
 import com.soroh.intermind.core.data.repository.AuthRepositoryImpl
 import com.soroh.intermind.core.data.repository.DecksRepository
 import com.soroh.intermind.core.data.repository.DecksRepositoryImpl
+import com.soroh.intermind.core.data.repository.TrainingRepository
+import com.soroh.intermind.core.data.repository.TrainingRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -28,6 +30,10 @@ interface DataModule {
     @Binds
     @Singleton
     fun bindDecksRepository(decksRepositoryImpl: DecksRepositoryImpl): DecksRepository
+
+    @Binds
+    @Singleton
+    fun bindTrainingRepository(trainingRepositoryImpl: TrainingRepositoryImpl): TrainingRepository
 
     companion object {
 

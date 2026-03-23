@@ -1,8 +1,10 @@
 package com.soroh.intermind.feature.deckdetails.impl
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soroh.intermind.core.data.repository.DecksRepository
+import com.soroh.intermind.core.data.repository.TrainingRepository
 import com.soroh.intermind.core.domain.entity.Card
 import com.soroh.intermind.core.domain.entity.Deck
 import com.soroh.intermind.feature.deckdetails.api.navigation.DeckDetailsNavKey
@@ -20,6 +22,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = DeckDetailsViewModel.Factory::class)
 class DeckDetailsViewModel @AssistedInject constructor(
     private val decksRepository: DecksRepository,
+    private val trainingRepository: TrainingRepository,
     @Assisted val key: DeckDetailsNavKey,
 ) : ViewModel() {
 
@@ -77,7 +80,7 @@ class DeckDetailsViewModel @AssistedInject constructor(
         }
     }
 
-     fun deleteDeck() {
+    fun deleteDeck() {
         viewModelScope.launch {
             try {
                 decksRepository.deleteDeck(key.deckId)
@@ -89,6 +92,17 @@ class DeckDetailsViewModel @AssistedInject constructor(
 
     fun refreshCards() {
         loadDeck(key.deckId)
+    }
+
+    fun test(deckId: String) {
+        viewModelScope.launch {
+            trainingRepository.getTrainingQueue(deckId = deckId).onSuccess {
+                Log.d("!@#", it.toString())
+            }.onFailure {
+                Log.e("!@#", it.toString())
+
+            }
+        }
     }
 
     @AssistedFactory

@@ -25,7 +25,8 @@ fun EntryProviderScope<NavKey>.deckDetailsEntry(navigator: Navigator) {
             },
             onAddCardClick = {deckId ->
                 navigator.navigate(AddEditCardNavKey(deckId = deckId))
-            }
+            },
+            onStartTrainingClick = {}
         )
     }
 }

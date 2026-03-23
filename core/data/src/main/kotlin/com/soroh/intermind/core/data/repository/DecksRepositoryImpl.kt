@@ -250,7 +250,7 @@ class DecksRepositoryImpl @Inject constructor(
 }
 
 @Serializable
-private data class DeckDto(
+internal data class DeckDto(
     @SerialName("id") val id: String? = null,
     @SerialName("name") val name: String,
     @SerialName("is_public") val isPublic: Boolean,
@@ -283,7 +283,7 @@ private data class DeckDto(
 }
 
 @Serializable
-private data class CardDto(
+internal data class CardDto(
     @SerialName("id") val id: String? = null,
     @SerialName("deck_id") val deckId: String = "",
     @SerialName("question") val question: String,

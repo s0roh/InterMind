@@ -49,10 +49,11 @@ import com.soroh.intermind.feature.deckdetails.impl.util.rememberSavableWithMap
 fun DeckDetailsScreen(
     viewModel: DeckDetailsViewModel,
     onBackClick: () -> Unit,
-    onEditDeckClick: (deckId: String) -> Unit = {},
-    onEditCardClick: (deckId:String, cardId: String?) -> Unit,
+    onEditDeckClick: (deckId: String) -> Unit,
+    onEditCardClick: (deckId: String, cardId: String?) -> Unit,
     onAddCardClick: (deckId: String) -> Unit,
     onDeleteDeck: () -> Unit,
+    onStartTrainingClick: (deckId: String) -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -81,7 +82,9 @@ fun DeckDetailsScreen(
                 onEditDeckClick = onEditDeckClick,
                 onDeleteCard = {},
                 onAddCardClick = onAddCardClick,
-                onEditCard = onEditCardClick
+                onEditCard = onEditCardClick,
+                onStartTrainingClick = onStartTrainingClick,
+                viewModel = viewModel
             )
         }
     }
@@ -98,6 +101,9 @@ private fun DeckDetailsContent(
     onDeleteCard: (Card) -> Unit,
     onAddCardClick: (deckId: String) -> Unit,
     onEditCard: (deckId: String, cardId: String?) -> Unit,
+    onStartTrainingClick: (deckId: String) -> Unit,
+    viewModel: DeckDetailsViewModel,
+
 ) {
     var isBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -181,7 +187,10 @@ private fun DeckDetailsContent(
                     title = stringResource(R.string.feature_deckdetails_api_start_train),
                     shouldShowIcon = true,
                     iconResId = InterMindIcons.Play,
-                    onClick = { },
+                    onClick = {
+                       viewModel.test(state.deck.id)
+                        onStartTrainingClick(state.deck.id)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 18.dp)
