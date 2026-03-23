@@ -27,6 +27,7 @@ import com.soroh.intermind.feature.explore.api.navigation.ExploreNavKey
 import com.soroh.intermind.feature.explore.impl.navigation.exploreEntry
 import com.soroh.intermind.feature.history.impl.navigation.historyEntry
 import com.soroh.intermind.feature.profile.impl.navigation.profileEntry
+import com.soroh.intermind.feature.training.impl.navigation.trainingEntry
 import com.soroh.intermind.navigation.TOP_LEVEL_NAV_ITEMS
 
 @Composable
@@ -57,6 +58,7 @@ fun InterMindApp(
             addEditDeckEntry(navigator)
             addEditCardEntry(navigator)
             deckDetailsEntry(navigator)
+            trainingEntry(navigator)
         }
 
         Box(

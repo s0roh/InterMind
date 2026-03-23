@@ -1,6 +1,5 @@
 package com.soroh.intermind.core.data.util
 
-import android.annotation.SuppressLint
 import com.soroh.intermind.core.data.model.CardPhase
 import com.soroh.intermind.core.data.model.Grade
 import com.soroh.intermind.core.data.model.ObjectiveResult
@@ -16,7 +15,6 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
-@SuppressLint("DefaultLocale")
 class FSRS(
     private val requestRetention: Double = 0.90,
     private val params: List<Double> = DEFAULT_PARAMS,
@@ -203,13 +201,13 @@ class FSRS(
         val base = params[4]
         val exponent = params[5] * (rating.value - 1)
         val raw = base - exp(exponent) + 1
-        return String.format("%.2f", raw.coerceIn(1.0, 10.0)).toDouble()
+        return raw.coerceIn(1.0, 10.0).round()
     }
 
     private fun initStability(rating: Rating): Double {
         val index = rating.value - 1
         val value = params.getOrElse(index) { 0.1 }
-        return String.format("%.2f", value.coerceAtMost(0.1)).toDouble()
+        return value.coerceAtMost(0.1).round()
     }
 
     private fun initState(rating: Rating): InitState {
@@ -242,7 +240,7 @@ class FSRS(
         val damped = linearDamping(deltaD, currentD)
         val nextD = currentD + damped
         val reverted = meanReversion(initDifficulty(Rating.Easy), nextD)
-        return String.format("%.2f", reverted.coerceIn(1.0, 10.0)).toDouble()
+        return reverted.coerceIn(1.0, 10.0).round()
     }
 
     private fun nextShortTermStability(currentS: Double, rating: Rating): Double {
@@ -250,7 +248,7 @@ class FSRS(
         if (rating.value >= 3) {
             sinc = max(sinc, 1.0)
         }
-        return String.format("%.2f", abs(currentS * sinc)).toDouble()
+        return (abs(currentS * sinc)).round()
     }
 
     private fun nextForgetStability(
@@ -265,7 +263,7 @@ class FSRS(
                 ((stability + 1).pow(params[13]) - 1) *
                 exp((1 - retrievability) * params[14])
 
-        return "%.2f".format(min(result, sMin)).toDouble()
+        return min(result, sMin).round()
     }
 
     private fun nextRecallStability(d: Double, s: Double, r: Double, rating: Rating): Double {
@@ -280,7 +278,12 @@ class FSRS(
                 easyBonus
 
         val result = s * (1 + factor)
-        return "%.2f".format(result).toDouble()
+        return result.round()
+    }
+
+    private fun Double.round(decimals: Int = 2): Double {
+        val factor = 10.0.pow(decimals)
+        return (this * factor).roundToInt() / factor
     }
 
     companion object {

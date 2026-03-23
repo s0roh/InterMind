@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.soroh.intermind.feature.deckdetails.impl"
+    namespace = "com.soroh.intermind.feature.training.impl"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -26,9 +26,6 @@ android {
 
 dependencies {
     implementation(projects.core.designsystem)
-    implementation(projects.feature.deckdetails.api)
-    implementation(projects.feature.addeditdeck.api)
-    implementation(projects.feature.addeditcard.api)
     implementation(projects.feature.training.api)
     implementation(projects.core.ui)
     implementation(projects.core.data)

@@ -7,6 +7,8 @@ import com.soroh.intermind.core.data.model.SessionStatistics
 import com.soroh.intermind.core.data.model.UserCardProgress
 import com.soroh.intermind.core.data.util.FSRS
 import com.soroh.intermind.core.data.util.generatePartialAnswer
+import com.soroh.intermind.core.data.util.levenshteinDistance
+import com.soroh.intermind.core.data.util.normalizeText
 import com.soroh.intermind.core.domain.entity.Card
 import com.soroh.intermind.core.domain.entity.TestType
 import com.soroh.intermind.core.domain.entity.TrainingCard
@@ -23,6 +25,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import javax.inject.Inject
+import kotlin.math.max
 
 /**
  * Implements a [TrainingRepository]
@@ -138,6 +141,24 @@ class TrainingRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun checkFillInTheBlankAnswer(
+        userInput: String,
+        correctWords: List<String>
+    ): Double {
+        val normalizedInput = normalizeText(userInput)
+        val normalizedCorrect = normalizeText(correctWords.joinToString(" "))
+
+        if (normalizedInput == normalizedCorrect) return 1.0
+
+        val dist = levenshteinDistance(normalizedInput, normalizedCorrect)
+        val maxLength = max(normalizedInput.length, normalizedCorrect.length)
+
+        // Вычисляем процент сходства
+        val similarity = 1.0 - (dist.toDouble() / maxLength.toDouble())
+
+       return similarity
+    }
+
     private fun generateWrongAnswers(
         currentCard: Card,
         allAnswers: List<CardAnswerDto>,
@@ -176,7 +197,6 @@ class TrainingRepositoryImpl @Inject constructor(
         }
     }
 
-
     override suspend fun processCardAnswer(
         currentProgress: UserCardProgress,
         result: ObjectiveResult
@@ -186,20 +206,20 @@ class TrainingRepositoryImpl @Inject constructor(
             val nextGrade = fsrs.calculateNextState(currentProgress, result)
 
             // Формируем обновленный прогресс
-            val now = LocalDateTime.now()
             val updatedProgress = currentProgress.copy(
                 stability = nextGrade.stability,
                 difficulty = nextGrade.difficulty,
                 interval = nextGrade.interval,
                 dueDate = addMillisToNow(nextGrade.durationMillis),
-                lastReview = now,
+                lastReview = LocalDateTime.now(),
                 reviewCount = currentProgress.reviewCount + 1,
                 phase = if (nextGrade.choice == Rating.Again) CardPhase.ReLearning.value else CardPhase.Review.value
             )
 
-            // Обновляем данные
             val dto = UserCardProgressDto.fromDomain(updatedProgress)
-            userCardProgressTable.upsert(dto)
+            userCardProgressTable.upsert(dto) {
+                onConflict = "user_id,card_id"
+            }
         }
     }
 
@@ -207,17 +227,9 @@ class TrainingRepositoryImpl @Inject constructor(
         return runCatching {
             val userId = getCurrentUserId() ?: throw IllegalStateException()
 
-            val payload = mapOf(
-                "user_id" to userId,
-                "deck_id" to stats.deckId,
-                "duration_sec" to stats.durationSec,
-                "total_cards" to stats.totalCards,
-                "correct_count" to stats.correctCount,
-                "modes_stat" to stats.modesStat,
-                "created_at" to LocalDateTime.now().toString()
-            )
+            val finalStats = stats.copy(userId = userId)
 
-            trainingSessionsTable.insert(payload)
+            trainingSessionsTable.insert(finalStats)
         }
     }
 
@@ -288,7 +300,7 @@ data class UserCardProgressDto(
             interval = progress.interval,
             dueDate = progress.dueDate.atZone(ZoneId.systemDefault()).toOffsetDateTime().toString(),
             reviewCount = progress.reviewCount,
-            lastReview = progress.lastReview.toString(),
+            lastReview = progress.lastReview.atZone(ZoneId.systemDefault()).toOffsetDateTime().toString(),
             phase = progress.phase
         )
     }

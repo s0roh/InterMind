@@ -58,6 +58,8 @@ dependencies {
     implementation(projects.feature.deckdetails.impl)
     implementation(projects.feature.addeditcard.api)
     implementation(projects.feature.addeditcard.impl)
+    implementation(projects.feature.training.api)
+    implementation(projects.feature.training.impl)
 
     implementation(projects.core.designsystem)
     implementation(projects.core.data)

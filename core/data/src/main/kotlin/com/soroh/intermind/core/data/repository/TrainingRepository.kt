@@ -28,4 +28,9 @@ interface TrainingRepository {
     ): Result<Unit>
 
     suspend fun saveSessionResult(stats: SessionStatistics): Result<Unit>
+
+    suspend fun checkFillInTheBlankAnswer(
+        userInput: String,
+        correctWords: List<String>
+    ): Double
 }

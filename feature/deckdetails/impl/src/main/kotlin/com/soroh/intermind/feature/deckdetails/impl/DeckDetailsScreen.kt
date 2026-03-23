@@ -187,10 +187,7 @@ private fun DeckDetailsContent(
                     title = stringResource(R.string.feature_deckdetails_api_start_train),
                     shouldShowIcon = true,
                     iconResId = InterMindIcons.Play,
-                    onClick = {
-                       viewModel.test(state.deck.id)
-                        onStartTrainingClick(state.deck.id)
-                    },
+                    onClick = { onStartTrainingClick(state.deck.id) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 18.dp)

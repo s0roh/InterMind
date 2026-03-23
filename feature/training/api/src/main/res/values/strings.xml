@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Training Screen -->
+    <string name="feature_training_api_training">Training</string>
+    <string name="feature_training_api_card_progress">%1$d of %2$d</string>
+    <string name="feature_training_api_show_answer">Show answer</string>
+    <string name="feature_training_api_dont_know">Don\'t know</string>
+    <string name="feature_training_api_next">Next</string>
+    <string name="feature_training_api_submit">Submit</string>
+    <string name="feature_training_api_your_answer">Your answer</string>
+    <string name="feature_training_api_enter_answer">Enter answer</string>
+    <string name="feature_training_api_correct">Correct!</string>
+    <string name="feature_training_api_incorrect">Incorrect</string>
+    <string name="feature_training_api_finish">Finish</string>
+    <string name="feature_training_api_continue">Continue</string>
+    <string name="feature_training_api_exit">Exit</string>
+    <string name="feature_training_api_exit_title">Exit training?</string>
+    <string name="feature_training_api_exit_message">Your progress will be saved.</string>
+    <string name="feature_training_api_yes">Yes</string>
+    <string name="feature_training_api_no">No</string>
+    
+    <!-- Training Results -->
+    <string name="feature_training_api_training_completed">Training completed!</string>
+    <string name="feature_training_api_total_cards">Total cards: %d</string>
+    <string name="feature_training_api_correct_answers">Correct answers: %d</string>
+    <string name="feature_training_api_accuracy">Accuracy: %d%%</string>
+    <string name="feature_training_api_time_spent">Time: %s</string>
+    
+    <!-- Empty State -->
+    <string name="feature_training_api_no_cards_title">No cards to train</string>
+    <string name="feature_training_api_no_cards_message">Add some cards to this deck to start training</string>
+    <string name="feature_training_api_go_back">Go back</string>
+    
+    <!-- Error State -->
+    <string name="feature_training_api_error_title">Error loading training</string>
+    <string name="feature_training_api_retry">Retry</string>
+</resources>
