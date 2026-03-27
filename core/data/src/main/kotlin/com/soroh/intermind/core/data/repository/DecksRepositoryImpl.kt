@@ -4,6 +4,10 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
+import com.soroh.intermind.core.data.dto.CardDto
+import com.soroh.intermind.core.data.dto.DeckDto
+import com.soroh.intermind.core.data.dto.DeckTrainingStatsDto
+import com.soroh.intermind.core.data.model.DeckTrainingStats
 import com.soroh.intermind.core.domain.entity.Card
 import com.soroh.intermind.core.domain.entity.Deck
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,12 +25,13 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /**
  * Implements a [DecksRepository]
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class DecksRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val supabase: SupabaseClient
@@ -39,10 +44,32 @@ class DecksRepositoryImpl @Inject constructor(
 
     private val refreshTrigger = MutableSharedFlow<Unit>(replay = 1, extraBufferCapacity = 1)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override fun getDecks(): Flow<List<Deck>> =
         refreshTrigger.onStart { emit(Unit) }
             .flatMapLatest { fetchDecks() }
+
+    override fun getDecksTrainingStats(dailyLimit: Int): Flow<Map<String, DeckTrainingStats>> =
+        refreshTrigger.onStart { emit(Unit) }
+            .flatMapLatest {
+                flow {
+                    val userId = getCurrentUserId() ?: return@flow emit(emptyMap())
+                    val response = supabase.postgrest.rpc(
+                        function = "get_decks_training_stats",
+                        parameters = buildJsonObject {
+                            put("p_user_id", userId)
+                            put("p_new_limit", dailyLimit)
+                        }
+                    ).decodeList<DeckTrainingStatsDto>()
+
+                    val statsMap = response.associate {
+                        it.deckId to DeckTrainingStats(
+                            it.newCount,
+                            it.reviewCount
+                        )
+                    }
+                    emit(statsMap)
+                }
+            }.flowOn(Dispatchers.IO)
 
     private fun fetchDecks(): Flow<List<Deck>> = flow {
         val userId = getCurrentUserId() ?: run {
@@ -246,68 +273,5 @@ class DecksRepositoryImpl @Inject constructor(
 
     companion object {
         private const val TAG = "DecksRepository"
-    }
-}
-
-@Serializable
-internal data class DeckDto(
-    @SerialName("id") val id: String? = null,
-    @SerialName("name") val name: String,
-    @SerialName("is_public") val isPublic: Boolean,
-    @SerialName("user_id") val userId: String? = null,
-    @SerialName("cards_count") val cardsCount: Int = 0,
-    @SerialName("likes") val likes: Int = 0,
-    @SerialName("trainings") val trainings: Int = 0
-) {
-    fun toDomain() = Deck(
-        id = id ?: "",
-        name = name,
-        isPublic = isPublic,
-        authorId = userId,
-        cardsCount = cardsCount,
-        likes = likes,
-        trainings = trainings
-    )
-
-    companion object {
-        fun fromDomain(deck: Deck, userId: String?) = DeckDto(
-            id = deck.id,
-            name = deck.name,
-            isPublic = deck.isPublic,
-            userId = userId,
-            cardsCount = deck.cardsCount,
-            likes = deck.likes,
-            trainings = deck.trainings
-        )
-    }
-}
-
-@Serializable
-internal data class CardDto(
-    @SerialName("id") val id: String? = null,
-    @SerialName("deck_id") val deckId: String = "",
-    @SerialName("question") val question: String,
-    @SerialName("answer") val answer: String,
-    @SerialName("wrong_answers") val wrongAnswers: List<String> = emptyList(),
-    @SerialName("picture_path") val picturePath: String? = null
-) {
-    fun toDomain(attachment: String?) = Card(
-        id = id ?: "",
-        question = question,
-        answer = answer,
-        wrongAnswers = wrongAnswers,
-        attachment = attachment,
-        picturePath = picturePath
-    )
-
-    companion object {
-        fun fromDomain(card: Card, deckId: String) = CardDto(
-            id = card.id,
-            deckId = deckId,
-            question = card.question,
-            answer = card.answer,
-            wrongAnswers = card.wrongAnswers,
-            picturePath = card.picturePath
-        )
     }
 }

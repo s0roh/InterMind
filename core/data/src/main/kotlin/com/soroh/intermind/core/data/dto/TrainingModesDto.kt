@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class TrainingModesDto(
+internal data class TrainingModesDto(
     @SerialName("user_id") val userId: String,
     @SerialName("deck_id") val deckId: String,
     @SerialName("modes") val modes: List<TestType>

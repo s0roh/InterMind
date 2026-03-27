@@ -66,7 +66,7 @@ fun InterMindApp(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(bottom = paddingValues.calculateBottomPadding())
         ) {
             NavDisplay(
                 entries = navigationState.toEntries(entryProvider),

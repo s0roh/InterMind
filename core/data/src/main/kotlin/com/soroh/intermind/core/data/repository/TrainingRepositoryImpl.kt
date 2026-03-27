@@ -1,11 +1,16 @@
 package com.soroh.intermind.core.data.repository
 
+import android.util.Log
+import com.soroh.intermind.core.data.dto.CardAnswerDto
+import com.soroh.intermind.core.data.dto.CardDto
 import com.soroh.intermind.core.data.dto.ExpectedTimeDto
 import com.soroh.intermind.core.data.dto.TrainingModesDto
+import com.soroh.intermind.core.data.dto.UserCardProgressDto
 import com.soroh.intermind.core.data.model.CardPhase
 import com.soroh.intermind.core.data.model.ObjectiveResult
 import com.soroh.intermind.core.data.model.Rating
 import com.soroh.intermind.core.data.model.SessionStatistics
+import com.soroh.intermind.core.data.model.TrainingItem
 import com.soroh.intermind.core.data.model.UserCardProgress
 import com.soroh.intermind.core.data.util.FSRS
 import com.soroh.intermind.core.data.util.RecallEvaluator
@@ -23,8 +28,6 @@ import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.storage.storage
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.plus
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import javax.inject.Inject
@@ -289,6 +292,8 @@ class TrainingRepositoryImpl @Inject constructor(
                 }
             ).decodeList<UserCardProgressDto>()
                 .map { it.toDomain() }
+
+            Log.d("!@#", response.toString())
             response
         }
     }
@@ -374,56 +379,3 @@ class TrainingRepositoryImpl @Inject constructor(
         )
     }
 }
-
-data class TrainingItem(
-    val trainingCard: TrainingCard,
-    val progress: UserCardProgress
-)
-
-@Serializable
-data class UserCardProgressDto(
-    @SerialName("id") val id: String? = null,
-    @SerialName("user_id") val userId: String,
-    @SerialName("card_id") val cardId: String,
-    @SerialName("stability") val stability: Double = 2.5,
-    @SerialName("difficulty") val difficulty: Double = 2.5,
-    @SerialName("interval") val interval: Int = 0,
-    @SerialName("due_date") val dueDate: String,
-    @SerialName("review_count") val reviewCount: Int = 0,
-    @SerialName("last_review") val lastReview: String,
-    @SerialName("phase") val phase: Int = 0
-) {
-    fun toDomain() = UserCardProgress(
-        id = id,
-        userId = userId,
-        cardId = cardId,
-        stability = stability,
-        difficulty = difficulty,
-        interval = interval,
-        dueDate = Instant.parse(dueDate),
-        reviewCount = reviewCount,
-        lastReview = Instant.parse(lastReview),
-        phase = phase
-    )
-
-    companion object {
-        fun fromDomain(progress: UserCardProgress) = UserCardProgressDto(
-            id = progress.id,
-            userId = progress.userId,
-            cardId = progress.cardId,
-            stability = progress.stability,
-            difficulty = progress.difficulty,
-            interval = progress.interval,
-            dueDate = progress.dueDate.toString(),
-            reviewCount = progress.reviewCount,
-            lastReview = progress.lastReview.toString(),
-            phase = progress.phase
-        )
-    }
-}
-
-@Serializable
-data class CardAnswerDto(
-    @SerialName("id") val id: String,
-    @SerialName("answer") val answer: String
-)

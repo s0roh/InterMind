@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.soroh.intermind.core.data.model.ModeStat
 import com.soroh.intermind.core.data.model.ObjectiveResult
 import com.soroh.intermind.core.data.model.SessionStatistics
+import com.soroh.intermind.core.data.model.TrainingItem
 import com.soroh.intermind.core.data.model.UserCardProgress
-import com.soroh.intermind.core.data.repository.TrainingItem
 import com.soroh.intermind.core.data.repository.TrainingRepository
 import com.soroh.intermind.core.domain.entity.TestType
 import com.soroh.intermind.core.domain.entity.TrainingCard

@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-data class ExpectedTimeDto(
+internal data class ExpectedTimeDto(
     @SerialName("user_id") val userId: String,
     @SerialName("deck_id") val deckId: String,
     @SerialName("test_type") val testType: String,
