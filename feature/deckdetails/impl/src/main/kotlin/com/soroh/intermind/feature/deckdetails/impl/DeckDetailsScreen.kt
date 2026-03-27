@@ -53,7 +53,8 @@ fun DeckDetailsScreen(
     onEditCardClick: (deckId: String, cardId: String?) -> Unit,
     onAddCardClick: (deckId: String) -> Unit,
     onDeleteDeck: () -> Unit,
-    onStartTrainingClick: (deckId: String) -> Unit
+    onStartTrainingClick: (deckId: String) -> Unit,
+    onTrainingModeSettingsClick: (String) -> Unit,
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -84,7 +85,7 @@ fun DeckDetailsScreen(
                 onAddCardClick = onAddCardClick,
                 onEditCard = onEditCardClick,
                 onStartTrainingClick = onStartTrainingClick,
-                viewModel = viewModel
+                onTrainingModeSettingsClick = onTrainingModeSettingsClick,
             )
         }
     }
@@ -102,8 +103,7 @@ private fun DeckDetailsContent(
     onAddCardClick: (deckId: String) -> Unit,
     onEditCard: (deckId: String, cardId: String?) -> Unit,
     onStartTrainingClick: (deckId: String) -> Unit,
-    viewModel: DeckDetailsViewModel,
-
+    onTrainingModeSettingsClick: (deckId: String) -> Unit,
 ) {
     var isBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -133,7 +133,7 @@ private fun DeckDetailsContent(
                 onEditDeck = { onEditDeckClick(state.deck.id) },
                 onOwner = {},
                 onDeckStatistic = {},
-                onTrainingSettings = { },
+                onTrainingSettings = { onTrainingModeSettingsClick(state.deck.id) },
                 onDeleteDeck = { showDeleteDialog = true },
                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
             )

@@ -1,31 +1,36 @@
 package com.soroh.intermind.core.data.repository
 
+import com.soroh.intermind.core.data.dto.ExpectedTimeDto
+import com.soroh.intermind.core.data.dto.TrainingModesDto
 import com.soroh.intermind.core.data.model.CardPhase
 import com.soroh.intermind.core.data.model.ObjectiveResult
 import com.soroh.intermind.core.data.model.Rating
 import com.soroh.intermind.core.data.model.SessionStatistics
 import com.soroh.intermind.core.data.model.UserCardProgress
 import com.soroh.intermind.core.data.util.FSRS
+import com.soroh.intermind.core.data.util.RecallEvaluator
 import com.soroh.intermind.core.data.util.generatePartialAnswer
 import com.soroh.intermind.core.data.util.levenshteinDistance
 import com.soroh.intermind.core.data.util.normalizeText
 import com.soroh.intermind.core.domain.entity.Card
 import com.soroh.intermind.core.domain.entity.TestType
 import com.soroh.intermind.core.domain.entity.TrainingCard
+import com.soroh.intermind.core.domain.entity.TrainingModes
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.storage.storage
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.plus
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneId
 import javax.inject.Inject
 import kotlin.math.max
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 /**
  * Implements a [TrainingRepository]
@@ -40,15 +45,22 @@ class TrainingRepositoryImpl @Inject constructor(
         get() = supabase.postgrest["cards"]
     private val trainingSessionsTable
         get() = supabase.postgrest["training_sessions"]
+    private val trainingModesTable
+        get() = supabase.postgrest["training_modes"]
+    private val userExpectedTimesTable
+        get() = supabase.postgrest["user_expected_times"]
 
     val fsrs = FSRS()
+    val evaluator = RecallEvaluator
 
     override suspend fun prepareTrainingCards(
         deckId: String,
         dailyLimit: Int,
-        modes: Set<TestType>
     ): Result<List<TrainingItem>> {
         return runCatching {
+            val trainingModesResult = getTrainingModes(deckId)
+            val modes = trainingModesResult.getOrThrow().modes.toSet()
+
             require(modes.isNotEmpty()) { "At least one TestType must be selected" }
 
             val progressQueue = getTrainingQueue(deckId, dailyLimit).getOrThrow()
@@ -156,7 +168,88 @@ class TrainingRepositoryImpl @Inject constructor(
         // Вычисляем процент сходства
         val similarity = 1.0 - (dist.toDouble() / maxLength.toDouble())
 
-       return similarity
+        return similarity
+    }
+
+    override suspend fun saveTrainingModes(trainingModes: TrainingModes): Result<Unit> {
+        return runCatching {
+            val userId =
+                getCurrentUserId() ?: throw IllegalStateException("User is not authenticated")
+
+            val dto = TrainingModesDto(
+                userId = userId,
+                deckId = trainingModes.deckId,
+                modes = trainingModes.modes
+            )
+
+            trainingModesTable.upsert(dto) {
+                onConflict = "user_id,deck_id"
+            }
+        }
+    }
+
+    override suspend fun getTrainingModes(deckId: String): Result<TrainingModes> {
+        return runCatching {
+            val userId =
+                getCurrentUserId() ?: throw IllegalStateException("User is not authenticated")
+
+            val response = trainingModesTable.select {
+                filter {
+                    eq("user_id", userId)
+                    eq("deck_id", deckId)
+                }
+            }.decodeSingleOrNull<TrainingModesDto>()
+
+            if (response != null) {
+                TrainingModes(
+                    deckId = response.deckId,
+                    modes = response.modes
+                )
+            } else {
+                getDefaultModes(deckId)
+            }
+        }
+    }
+
+    override suspend fun getAverageTime(testType: TestType): Long {
+        val userId =
+            getCurrentUserId() ?: throw IllegalStateException("User is not authenticated")
+
+        val dto = userExpectedTimesTable.select {
+            filter {
+                eq("user_id", userId)
+                eq("test_type", testType.name)
+            }
+        }.decodeSingleOrNull<ExpectedTimeDto>()
+        return dto?.averageTimeMs ?: getDefaultTime(testType)
+    }
+
+    override suspend fun updateAverageTime(
+        testType: TestType,
+        responseTimeMs: Long
+    ) {
+        val userId =
+            getCurrentUserId() ?: throw IllegalStateException("User is not authenticated")
+
+        val oldAverage = getAverageTime(testType)
+        val alpha = 0.2 // коэффициент сглаживания
+        val newAverage = (alpha * responseTimeMs + (1 - alpha) * oldAverage).toLong()
+
+        userExpectedTimesTable.upsert(
+            ExpectedTimeDto(
+                userId = userId,
+                testType = testType.name,
+                averageTimeMs = newAverage
+            )
+        ) {
+            onConflict = "user_id,test_type"
+        }
+    }
+
+    private fun getDefaultTime(testType: TestType): Long = when (testType) {
+        TestType.TRUE_FALSE -> 5000L
+        TestType.CHOICE -> 7000L
+        TestType.INPUT -> 11000L
     }
 
     private fun generateWrongAnswers(
@@ -197,13 +290,17 @@ class TrainingRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun processCardAnswer(
+    override suspend fun updateCardProgress(
         currentProgress: UserCardProgress,
         result: ObjectiveResult
-    ): Result<Unit> {
+    ): Result<UserCardProgress> {
         return runCatching {
+
+            // Получаем персонализированное ожидаемое время для данного типа вопроса
+            val averageTime = getAverageTime(result.testType)
+
             // Вычисляем новые параметры FSRS на основе объективного результата
-            val nextGrade = fsrs.calculateNextState(currentProgress, result)
+            val nextGrade = fsrs.calculateNextState(currentProgress, result, evaluator, averageTime)
 
             // Формируем обновленный прогресс
             val updatedProgress = currentProgress.copy(
@@ -211,7 +308,7 @@ class TrainingRepositoryImpl @Inject constructor(
                 difficulty = nextGrade.difficulty,
                 interval = nextGrade.interval,
                 dueDate = addMillisToNow(nextGrade.durationMillis),
-                lastReview = LocalDateTime.now(),
+                lastReview = Clock.System.now(),
                 reviewCount = currentProgress.reviewCount + 1,
                 phase = if (nextGrade.choice == Rating.Again) CardPhase.ReLearning.value else CardPhase.Review.value
             )
@@ -220,6 +317,10 @@ class TrainingRepositoryImpl @Inject constructor(
             userCardProgressTable.upsert(dto) {
                 onConflict = "user_id,card_id"
             }
+
+            updateAverageTime(result.testType, result.responseTimeMs)
+
+            updatedProgress
         }
     }
 
@@ -254,8 +355,15 @@ class TrainingRepositoryImpl @Inject constructor(
         return supabase.auth.sessionManager.loadSession()?.user?.id
     }
 
-    private fun addMillisToNow(millis: Long): LocalDateTime {
-        return LocalDateTime.now().plus(millis, java.time.temporal.ChronoUnit.MILLIS)
+    private fun addMillisToNow(millis: Long): Instant {
+        return Clock.System.now().plus(millis, DateTimeUnit.MILLISECOND)
+    }
+
+    private fun getDefaultModes(deckId: String): TrainingModes {
+        return TrainingModes(
+            deckId = deckId,
+            modes = listOf(TestType.CHOICE, TestType.INPUT, TestType.TRUE_FALSE)
+        )
     }
 }
 
@@ -284,9 +392,9 @@ data class UserCardProgressDto(
         stability = stability,
         difficulty = difficulty,
         interval = interval,
-        dueDate = OffsetDateTime.parse(dueDate).toLocalDateTime(),
+        dueDate = Instant.parse(dueDate),
         reviewCount = reviewCount,
-        lastReview = OffsetDateTime.parse(lastReview).toLocalDateTime(),
+        lastReview = Instant.parse(lastReview),
         phase = phase
     )
 
@@ -298,9 +406,9 @@ data class UserCardProgressDto(
             stability = progress.stability,
             difficulty = progress.difficulty,
             interval = progress.interval,
-            dueDate = progress.dueDate.atZone(ZoneId.systemDefault()).toOffsetDateTime().toString(),
+            dueDate = progress.dueDate.toString(),
             reviewCount = progress.reviewCount,
-            lastReview = progress.lastReview.atZone(ZoneId.systemDefault()).toOffsetDateTime().toString(),
+            lastReview = progress.lastReview.toString(),
             phase = progress.phase
         )
     }

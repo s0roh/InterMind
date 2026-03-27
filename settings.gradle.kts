@@ -49,4 +49,6 @@ include(":feature:profile:api")
 include(":feature:profile:impl")
 include(":feature:training:api")
 include(":feature:training:impl")
+include(":feature:trainingmodesettings:api")
+include(":feature:trainingmodesettings:impl")
 

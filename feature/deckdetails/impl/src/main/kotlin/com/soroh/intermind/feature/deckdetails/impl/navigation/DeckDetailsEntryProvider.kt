@@ -10,6 +10,7 @@ import com.soroh.intermind.feature.deckdetails.api.navigation.DeckDetailsNavKey
 import com.soroh.intermind.feature.deckdetails.impl.DeckDetailsScreen
 import com.soroh.intermind.feature.deckdetails.impl.DeckDetailsViewModel
 import com.soroh.intermind.feature.training.api.navigation.TrainingNavKey
+import com.soroh.intermind.feature.trainingmodesettings.api.navigation.TrainingModeSettingsNavKey
 
 fun EntryProviderScope<NavKey>.deckDetailsEntry(navigator: Navigator) {
     entry<DeckDetailsNavKey> { key ->
@@ -27,7 +28,14 @@ fun EntryProviderScope<NavKey>.deckDetailsEntry(navigator: Navigator) {
             onAddCardClick = { deckId ->
                 navigator.navigate(AddEditCardNavKey(deckId = deckId))
             },
-            onStartTrainingClick = { deckId -> navigator.navigate(TrainingNavKey(deckId = deckId)) }
+            onStartTrainingClick = { deckId -> navigator.navigate(TrainingNavKey(deckId = deckId)) },
+            onTrainingModeSettingsClick = { deckId ->
+                navigator.navigate(
+                    TrainingModeSettingsNavKey(
+                        deckId = deckId
+                    )
+                )
+            }
         )
     }
 }

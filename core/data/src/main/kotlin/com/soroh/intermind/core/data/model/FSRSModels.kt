@@ -2,6 +2,7 @@ package com.soroh.intermind.core.data.model
 
 import com.soroh.intermind.core.domain.entity.TestType
 import java.time.LocalDateTime
+import kotlin.time.Instant
 
 /**
  * Оценка качества ответа пользователя, используемая алгоритмом FSRS.
@@ -81,9 +82,9 @@ data class UserCardProgress(
     var stability: Double = 2.5,
     var difficulty: Double = 2.5,
     var interval: Int = 0,
-    var dueDate: LocalDateTime = LocalDateTime.now(),
+    var dueDate: Instant,
     var reviewCount: Int = 0,
-    var lastReview: LocalDateTime = LocalDateTime.now(),
+    var lastReview: Instant,
     var phase: Int = 0
 )
 
@@ -92,55 +93,15 @@ data class UserCardProgress(
  * Используется для автоматического определения оценки (Rating) без субъективной самооценки.
  *
  * @param accuracy точность ответа в диапазоне [0.0, 1.0]:
- *   - Для CHOICE: 1.0 — правильно, 0.0 — неправильно.
+ *   - Для CHOICE, TRUE_FALSE: отношение 1/attempts.
  *   - Для INPUT: степень совпадения с эталоном (например, 0.8 — 80% совпадения).
- *   - Для TRUE_FALSE: 1.0 — правильно, 0.0 — неправильно.
  * @param responseTimeMs время ответа в миллисекундах.
  * @param testType тип задания.
+ * @param attempts количество попыток.
  */
 data class ObjectiveResult(
     val accuracy: Double,
     val responseTimeMs: Long,
-    val testType: TestType
+    val testType: TestType,
+    val attempts: Int
 )
-
-/**
- * Преобразует объективные метрики тестирования в субъективную оценку [Rating],
- * которую ожидает алгоритм FSRS.
- *
- * Правила преобразования основаны на следующих принципах:
- * - Если точность ниже 0.6 — ответ считается неверным (`Again`).
- * - Для разных типов заданий используются свои пороги точности и учитывается время ответа.
- * - Превышение порога времени понижает оценку на один уровень.
- *
- * @param result объективные метрики, собранные во время тестирования.
- * @return оценка [Rating], соответствующая качеству ответа.
- */
-fun mapObjectiveToRating(result: ObjectiveResult): Rating {
-    // Обработка полной ошибки
-    if (result.accuracy < 0.6) return Rating.Again
-
-    // Расчёт временного штрафа
-    val timeLimit = 5_000L
-    val isSlow = result.responseTimeMs > timeLimit
-
-    return when (result.testType) {
-        TestType.TRUE_FALSE -> {
-            if (result.accuracy > 0.9) Rating.Good else Rating.Again
-        }
-        TestType.CHOICE -> {
-            when {
-                result.accuracy > 0.9 && !isSlow -> Rating.Easy
-                result.accuracy > 0.9 && isSlow -> Rating.Good
-                else -> Rating.Hard
-            }
-        }
-        TestType.INPUT -> {
-            when {
-                result.accuracy > 0.95 && !isSlow -> Rating.Easy
-                result.accuracy > 0.8 -> Rating.Good
-                else -> Rating.Hard
-            }
-        }
-    }
-}

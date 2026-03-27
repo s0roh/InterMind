@@ -60,6 +60,8 @@ dependencies {
     implementation(projects.feature.addeditcard.impl)
     implementation(projects.feature.training.api)
     implementation(projects.feature.training.impl)
+    implementation(projects.feature.trainingmodesettings.api)
+    implementation(projects.feature.trainingmodesettings.impl)
 
     implementation(projects.core.designsystem)
     implementation(projects.core.data)

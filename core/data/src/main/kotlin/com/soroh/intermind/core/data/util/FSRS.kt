@@ -1,11 +1,11 @@
 package com.soroh.intermind.core.data.util
 
+import android.util.Log
 import com.soroh.intermind.core.data.model.CardPhase
 import com.soroh.intermind.core.data.model.Grade
 import com.soroh.intermind.core.data.model.ObjectiveResult
 import com.soroh.intermind.core.data.model.Rating
 import com.soroh.intermind.core.data.model.UserCardProgress
-import com.soroh.intermind.core.data.model.mapObjectiveToRating
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.floor
@@ -34,10 +34,18 @@ class FSRS(
         Grade(0, 0, Rating.Again),
     )
 
-    fun calculateNextState(flashCard: UserCardProgress, result: ObjectiveResult): Grade {
-        // Преобразуем объективный результат в рейтинг
-        val derivedRating = mapObjectiveToRating(result)
+    fun calculateNextState(
+        flashCard: UserCardProgress,
+        result: ObjectiveResult,
+        evaluator: RecallEvaluator,
+        averageTimeMs: Long
+    ): Grade {
+        // Получаем объективный рейтинг с учётом accuracy, времени и ожиданий
+        val derivedRating = evaluator.evaluate(flashCard, result, averageTimeMs)
 
+        Log.d("!@#", derivedRating.toString())
+
+        // Вычисляем все возможные варианты FSRS для карточки
         val allGrades = calculate(flashCard)
 
         // Возвращаем конкретный Grade, соответствующий полученному рейтингу
@@ -63,10 +71,10 @@ class FSRS(
 
         when (flashCard.phase) {
             CardPhase.Added.value -> {
-                stateAgain = InitState()
-                stateHard = InitState()
-                stateGood = InitState()
-                stateEasy = InitState()
+                stateAgain = initState(Rating.Again)
+                stateHard = initState(Rating.Hard)
+                stateGood = initState(Rating.Good)
+                stateEasy = initState(Rating.Easy)
 
                 ivlEasy = 1
 
@@ -188,7 +196,7 @@ class FSRS(
     }
 
     private fun forgettingCurve(interval: Double, stability: Double): Double {
-        return exp(-interval / stability)
+        return (1 + factor * interval / stability).pow(decay)
     }
 
     private fun generateFuzzFactor(): Double {
@@ -206,8 +214,7 @@ class FSRS(
 
     private fun initStability(rating: Rating): Double {
         val index = rating.value - 1
-        val value = params.getOrElse(index) { 0.1 }
-        return value.coerceAtMost(0.1).round()
+        return params.getOrElse(index) { 0.1 }
     }
 
     private fun initState(rating: Rating): InitState {
@@ -245,7 +252,7 @@ class FSRS(
 
     private fun nextShortTermStability(currentS: Double, rating: Rating): Double {
         var sinc = exp(params[17] * (rating.value - 3 + params[18])) * currentS.pow(-params[19])
-        if (rating.value >= 3) {
+        if (rating.value >= 2) {
             sinc = max(sinc, 1.0)
         }
         return (abs(currentS * sinc)).round()
