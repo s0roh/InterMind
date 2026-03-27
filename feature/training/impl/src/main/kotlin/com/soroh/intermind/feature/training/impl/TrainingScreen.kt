@@ -1,9 +1,5 @@
 package com.soroh.intermind.feature.training.impl
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -34,26 +29,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -65,10 +54,13 @@ import com.soroh.intermind.core.designsystem.component.AppButton
 import com.soroh.intermind.core.designsystem.component.ErrorState
 import com.soroh.intermind.core.designsystem.component.LoadingState
 import com.soroh.intermind.core.domain.entity.TestType
-import com.soroh.intermind.core.domain.entity.TrainingCard
 import com.soroh.intermind.feature.training.api.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
+import com.soroh.intermind.feature.training.impl.component.AnswerWithHighlight
+import com.soroh.intermind.feature.training.impl.component.ChoiceButton
+import com.soroh.intermind.feature.training.impl.component.EmptyTrainingState
+import com.soroh.intermind.feature.training.impl.component.TFButton
+import com.soroh.intermind.feature.training.impl.component.TrueFalseAnswerSection
+import com.soroh.intermind.feature.training.impl.component.UserInputWithHighlight
 
 @Composable
 fun TrainingScreen(
@@ -122,9 +114,6 @@ private fun TrainingContent(
     onNext: () -> Unit,
     onExitClick: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val shakeOffset = remember { Animatable(0f) }
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -202,25 +191,24 @@ private fun TrainingCardContent(
     }
 }
 
-
 @Composable
 private fun ChoiceCard(
     state: TrainingScreenState.InProgress,
     onSubmit: (String) -> Unit
 ) {
-    val answers = rememberSaveable (state.currentCard.id) {
+    val answers = rememberSaveable(state.currentCard.id) {
         (listOf(state.currentCard.answer) + state.currentCard.wrongAnswers).shuffled()
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         answers.forEach { answer ->
-
-            OutlinedButton(
-                onClick = { onSubmit(answer) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(answer)
-            }
+            ChoiceButton(
+                answer = answer,
+                isAnswered = state.isAnswerRevealed,
+                selectedAnswer = state.selectedAnswer,
+                correctAnswer = state.currentCard.answer,
+                onAnswerSelected = { onSubmit(answer) }
+            )
         }
     }
 }
@@ -230,28 +218,36 @@ private fun TrueFalseCard(
     state: TrainingScreenState.InProgress,
     onSubmit: (String?) -> Unit
 ) {
-    Column {
-        Text(
-            text = state.currentCard.displayedAnswer ?: "",
-            style = MaterialTheme.typography.titleMedium
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        TrueFalseAnswerSection(
+            displayedAnswer = state.currentCard.displayedAnswer,
+            modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            TFButton(
+                text = stringResource(R.string.feature_training_api_false_answer),
+                isButtonTrue = false,
+                state = state,
                 onClick = { onSubmit(null) },
                 modifier = Modifier.weight(1f)
-            ) {
-                Text("Нет")
-            }
+            )
 
-            Button(
+            TFButton(
+                text = stringResource(R.string.feature_training_api_true_answer),
+                isButtonTrue = true,
+                state = state,
                 onClick = { onSubmit(state.currentCard.answer) },
                 modifier = Modifier.weight(1f)
-            ) {
-                Text("Да")
-            }
+            )
         }
     }
 }
@@ -261,23 +257,70 @@ private fun InputCard(
     state: TrainingScreenState.InProgress,
     onSubmit: (String) -> Unit
 ) {
-    var text by remember { mutableStateOf("") }
+    var text by remember(state.currentCard) { mutableStateOf("") }
 
-    Column {
-        OutlinedTextField(
-            value = text,
-            onValueChange = { text = it },
-            modifier = Modifier.fillMaxWidth()
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        if (state.isAnswerRevealed) {
+            AnswerWithHighlight(
+                answer = state.currentCard.answer,
+                missingWords = state.currentCard.missingWords,
+                startIndex = state.currentCard.missingWordStartIndex
+            )
 
-        Spacer(Modifier.height(12.dp))
+            UserInputWithHighlight(
+                userInput = state.selectedAnswer ?: "",
+                missingWords = state.currentCard.missingWords,
+                isCorrect = state.isCorrect ?: false
+            )
 
-        Button(
-            onClick = { onSubmit(text) },
-            enabled = text.isNotBlank(),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Ответить")
+            Spacer(modifier = Modifier.height(24.dp))
+
+        } else {
+            Text(
+                text = if (state.currentCard.partialAnswer.isNullOrEmpty())
+                    stringResource(R.string.feature_training_api_give_answer)
+                else stringResource(R.string.feature_training_api_complete_answer),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            state.currentCard.partialAnswer?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text(stringResource(R.string.feature_training_api_enter_answer)) },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { if (text.isNotBlank()) onSubmit(text) }
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            Button(
+                onClick = { onSubmit(text) },
+                enabled = text.isNotBlank(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(stringResource(R.string.feature_training_api_submit_button))
+            }
         }
     }
 }
@@ -288,25 +331,21 @@ private fun BottomBar(
     onNext: () -> Unit,
     onDontKnow: () -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-    ) {
-        Column(Modifier.padding(16.dp)) {
+    Column(Modifier.padding(16.dp)) {
 
-            if (!isRevealed) {
-                TextButton(
-                    onClick = onDontKnow,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Не знаю")
-                }
-            } else {
-                Button(
-                    onClick = onNext,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Далее")
-                }
+        if (!isRevealed) {
+            TextButton(
+                onClick = onDontKnow,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.feature_training_api_dont_know))
+            }
+        } else {
+            Button(
+                onClick = onNext,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.feature_training_api_next))
             }
         }
     }
@@ -403,41 +442,6 @@ private fun StatRow(label: String) {
         text = label,
         style = MaterialTheme.typography.bodyLarge
     )
-}
-
-@Composable
-private fun EmptyTrainingState(onBackClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = stringResource(R.string.feature_training_api_no_cards_title),
-            style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Medium
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = stringResource(R.string.feature_training_api_no_cards_message),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        AppButton(
-            title = stringResource(R.string.feature_training_api_go_back),
-            onClick = onBackClick,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
 }
 
 @Composable

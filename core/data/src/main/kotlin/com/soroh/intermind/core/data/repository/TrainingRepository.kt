@@ -23,6 +23,7 @@ interface TrainingRepository {
      * и сохраняет (upsert) обновленный прогресс в Supabase.
      */
     suspend fun updateCardProgress(
+        deckId: String,
         currentProgress: UserCardProgress,
         result: ObjectiveResult
     ): Result<UserCardProgress>
@@ -49,7 +50,7 @@ interface TrainingRepository {
      */
     suspend fun getTrainingModes(deckId: String): Result<TrainingModes>
 
-    suspend fun getAverageTime(testType: TestType): Long
+    suspend fun getAverageTime(deckId: String, testType: TestType): Long
 
-    suspend fun updateAverageTime(testType: TestType, responseTimeMs: Long)
+    suspend fun updateAverageTime(deckId: String, testType: TestType, responseTimeMs: Long)
 }

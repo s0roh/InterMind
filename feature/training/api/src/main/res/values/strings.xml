@@ -18,6 +18,10 @@
     <string name="feature_training_api_exit_message">Прогресс будет сохранён.</string>
     <string name="feature_training_api_yes">Да</string>
     <string name="feature_training_api_no">Нет</string>
+    <string name="feature_training_api_possible_answer">Возможный ответ:</string>
+    <string name="feature_training_api_display_error">Ошибка отображения</string>
+    <string name="feature_training_api_false_answer">ЛОЖЬ</string>
+    <string name="feature_training_api_true_answer">ИСТИНА</string>
 
     <!-- Training Results -->
     <string name="feature_training_api_training_completed">Тренировка завершена!</string>
@@ -36,7 +40,14 @@
     <string name="feature_training_api_retry">Повторить</string>
 
     <!-- Fill in the blank -->
-    <string name="feature_training_api_give_answer">Дайте ответ</string>
-    <string name="feature_training_api_complete_answer">Дополните ответ</string>
     <string name="feature_training_api_correct_answer">Правильный ответ</string>
+    <string name="feature_training_api_you_dont_answered">Вы не дали ответ</string>
+    <string name="feature_training_api_answer">Ответ:</string>
+    <string name="feature_training_api_give_answer">Дайте ответ на вопрос:</string>
+    <string name="feature_training_api_complete_answer">Дополните ответ:</string>
+    <string name="feature_training_api_submit_button">Ответить</string>
+
+
+
+
 </resources>

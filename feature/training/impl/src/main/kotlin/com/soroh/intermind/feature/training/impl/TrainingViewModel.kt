@@ -32,10 +32,7 @@ class TrainingViewModel @AssistedInject constructor(
     val state: StateFlow<TrainingScreenState> = _state.asStateFlow()
 
     private var session: TrainingSession? = null
-
     private val preloadedPictures = mutableMapOf<String, Uri?>()
-
-    // Лимит новых карточек (можно получить из настроек пользователя)
     private val dailyLimit = 20
 
     init {
@@ -63,7 +60,6 @@ class TrainingViewModel @AssistedInject constructor(
                 )
 
                 preloadPictures(items)
-
                 showNextCard()
 
             }.onFailure { error ->
@@ -137,14 +133,9 @@ class TrainingViewModel @AssistedInject constructor(
         attempts: Int
     ) {
         val isCorrect = checkAnswer(item.trainingCard, answer)
+        val accuracy = if (isCorrect) 1.0 / attempts else 0.0
 
-        val accuracy = if (isCorrect) {
-            1.0 / attempts
-        } else {
-            0.0
-        }
-
-        finalizeAnswer(item, isCorrect, accuracy, attempts)
+        finalizeAnswer(item, isCorrect, accuracy, attempts, answer)
     }
 
     private fun processTextAnswer(
@@ -160,7 +151,7 @@ class TrainingViewModel @AssistedInject constructor(
 
             val isCorrect = similarity >= 0.80
 
-            finalizeAnswer(item, isCorrect, similarity, attempts)
+            finalizeAnswer(item, isCorrect, similarity, attempts, text)
         }
     }
 
@@ -168,16 +159,41 @@ class TrainingViewModel @AssistedInject constructor(
         item: TrainingItem,
         isCorrect: Boolean,
         accuracy: Double,
-        attempts: Int
+        attempts: Int,
+        selectedAnswer: String?
     ) {
         val s = session!!
         val responseTime = now() - s.cardStartTime
+        val currentState = _state.value as? TrainingScreenState.InProgress
 
-        viewModelScope.launch {
-            var newProgress = item.progress
+        val updatedQueue = ArrayDeque(s.queue)
+        if (!isCorrect) {
+            updatedQueue.addLast(item)
+        }
 
-            if (isCorrect) {
-                newProgress = trainingRepository.updateCardProgress(
+        session = s.copy(
+            queue = updatedQueue,
+            correct = s.correct + if (isCorrect) 1 else 0,
+            mistakes = s.mistakes + if (!isCorrect) 1 else 0,
+            attempts = s.attempts + (item.trainingCard.id to attempts),
+            modeStats = updateModeStats(s.modeStats, item.trainingCard.testType, isCorrect)
+        )
+
+        _state.value = TrainingScreenState.InProgress(
+            currentCard = item.trainingCard,
+            currentProgress = item.progress,
+            cardNumber = s.index,
+            totalCards = s.total,
+            isAnswerRevealed = true,
+            isCorrect = isCorrect,
+            selectedAnswer = selectedAnswer,
+            preloadedPicture = currentState?.preloadedPicture
+        )
+
+        if (isCorrect) {
+            viewModelScope.launch {
+                trainingRepository.updateCardProgress(
+                    deckId = key.deckId,
                     currentProgress = item.progress,
                     result = ObjectiveResult(
                         accuracy = accuracy,
@@ -187,32 +203,6 @@ class TrainingViewModel @AssistedInject constructor(
                     )
                 ).getOrThrow()
             }
-
-            val updatedItem = item.copy(progress = newProgress)
-
-            val updatedQueue = ArrayDeque(s.queue)
-
-            if (!isCorrect) {
-                updatedQueue.addLast(updatedItem)
-            }
-
-            session = s.copy(
-                queue = updatedQueue,
-                correct = s.correct + if (isCorrect) 1 else 0,
-                mistakes = s.mistakes + if (!isCorrect) 1 else 0,
-                attempts = s.attempts + (item.trainingCard.id to attempts),
-                modeStats = updateModeStats(s.modeStats, item.trainingCard.testType, isCorrect)
-            )
-
-            _state.value = TrainingScreenState.InProgress(
-                currentCard = item.trainingCard,
-                currentProgress = newProgress,
-                cardNumber = s.index,
-                totalCards = s.total,
-                isAnswerRevealed = true,
-                isCorrect = isCorrect,
-                selectedAnswer = null
-            )
         }
     }
 
@@ -238,21 +228,28 @@ class TrainingViewModel @AssistedInject constructor(
 
         val duration = ((now() - s.startTime) / 1000).toInt()
 
+        val attemptsMap = s.attempts
+        val totalCards = s.total
+        val correctFirstTry = attemptsMap.count { it.value == 1 }
+        val mistakesCount = totalCards - correctFirstTry
+
         viewModelScope.launch {
             trainingRepository.saveSessionResult(
                 SessionStatistics(
                     deckId = key.deckId,
                     durationSec = duration,
-                    totalCards = s.total,
-                    correctCount = s.correct - s.mistakes,
+                    totalCards = totalCards ,
+                    correctCount = correctFirstTry,
                     modesStat = s.modeStats.mapKeys { it.key.name }
                 )
             )
         }
 
+
         _state.value = TrainingScreenState.Finished(
-            totalCards = s.total,
-            correctCount = s.correct - s.mistakes,
+            totalCards = totalCards,
+            correctCount = correctFirstTry,
+            mistakesCount = mistakesCount,
             durationSec = duration,
             deckId = key.deckId
         )
@@ -304,6 +301,7 @@ sealed interface TrainingScreenState {
     data class Finished(
         val totalCards: Int,
         val correctCount: Int,
+        val mistakesCount: Int,
         val durationSec: Int,
         val deckId: String,
     ) : TrainingScreenState

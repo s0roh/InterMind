@@ -211,13 +211,14 @@ class TrainingRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAverageTime(testType: TestType): Long {
+    override suspend fun getAverageTime(deckId: String, testType: TestType): Long {
         val userId =
             getCurrentUserId() ?: throw IllegalStateException("User is not authenticated")
 
         val dto = userExpectedTimesTable.select {
             filter {
                 eq("user_id", userId)
+                eq("deck_id", userId)
                 eq("test_type", testType.name)
             }
         }.decodeSingleOrNull<ExpectedTimeDto>()
@@ -225,24 +226,26 @@ class TrainingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateAverageTime(
+        deckId: String,
         testType: TestType,
         responseTimeMs: Long
     ) {
         val userId =
             getCurrentUserId() ?: throw IllegalStateException("User is not authenticated")
 
-        val oldAverage = getAverageTime(testType)
+        val oldAverage = getAverageTime(deckId, testType)
         val alpha = 0.2 // коэффициент сглаживания
         val newAverage = (alpha * responseTimeMs + (1 - alpha) * oldAverage).toLong()
 
         userExpectedTimesTable.upsert(
             ExpectedTimeDto(
                 userId = userId,
+                deckId = deckId,
                 testType = testType.name,
                 averageTimeMs = newAverage
             )
         ) {
-            onConflict = "user_id,test_type"
+            onConflict = "user_id,deck_id,test_type"
         }
     }
 
@@ -291,13 +294,14 @@ class TrainingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateCardProgress(
+        deckId: String,
         currentProgress: UserCardProgress,
         result: ObjectiveResult
     ): Result<UserCardProgress> {
         return runCatching {
 
             // Получаем персонализированное ожидаемое время для данного типа вопроса
-            val averageTime = getAverageTime(result.testType)
+            val averageTime = getAverageTime(deckId = deckId, testType = result.testType)
 
             // Вычисляем новые параметры FSRS на основе объективного результата
             val nextGrade = fsrs.calculateNextState(currentProgress, result, evaluator, averageTime)
@@ -318,7 +322,11 @@ class TrainingRepositoryImpl @Inject constructor(
                 onConflict = "user_id,card_id"
             }
 
-            updateAverageTime(result.testType, result.responseTimeMs)
+            updateAverageTime(
+                deckId = deckId,
+                testType = result.testType,
+                responseTimeMs = result.responseTimeMs
+            )
 
             updatedProgress
         }
