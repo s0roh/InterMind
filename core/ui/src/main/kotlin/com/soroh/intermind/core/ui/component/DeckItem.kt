@@ -40,8 +40,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.soroh.intermind.core.designsystem.component.ThemePreviews
 import com.soroh.intermind.core.designsystem.icon.InterMindIcons
 import com.soroh.intermind.core.designsystem.theme.InterMindTheme
@@ -104,10 +106,17 @@ fun DeckItem(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    StatItem(
-                        icon = ImageVector.vectorResource(InterMindIcons.Cards),
-                        value = deck.cardsCount.toString()
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        StatItem(
+                            icon = ImageVector.vectorResource(InterMindIcons.Cards),
+                            value = deck.cardsCount.toString()
+                        )
+
+                        if (mode == DeckDisplayMode.PERSONAL) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            DeckVisibility(deck.isPublic)
+                        }
+                    }
 
                     if (mode == DeckDisplayMode.SOCIAL) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -123,12 +132,39 @@ fun DeckItem(
                             )
                         }
                     } else {
-                        DeckVisibility(deck.isPublic)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            AnkiBadge(
+                                count = deck.newCardsCount,
+                                color = Color(0xFF2196F3)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            AnkiBadge(
+                                count = deck.reviewCardsCount,
+                                color = Color(0xFF4CAF50)
+                            )
+                        }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun AnkiBadge(
+    count: Int,
+    color: Color
+) {
+    val alpha = if (count > 0) 1f else 0.3f
+
+    Text(
+        text = count.toString(),
+        style = MaterialTheme.typography.titleMedium.copy(
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp
+        ),
+        color = color.copy(alpha = alpha)
+    )
 }
 
 @Composable
@@ -146,7 +182,7 @@ private fun DeckVisibility(isPublic: Boolean) {
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = if (isPublic) stringResource(R.string.public_deck) else stringResource(R.string.private_deck),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = Color.Gray
         )
     }
@@ -260,7 +296,9 @@ private fun DeckItemPreview() {
                         isLiked = false,
                         cardsCount = 120,
                         likes = 0,
-                        trainings = 342
+                        trainings = 342,
+                        newCardsCount = 20,
+                        reviewCardsCount = 40
                     ),
                     mode = DeckDisplayMode.PERSONAL
                 )

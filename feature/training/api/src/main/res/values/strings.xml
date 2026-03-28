@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Training Screen -->
+    <string name="feature_training_api_training">Тренировка</string>
+    <string name="feature_training_api_card_progress">%1$d из %2$d</string>
+    <string name="feature_training_api_show_answer">Показать ответ</string>
+    <string name="feature_training_api_dont_know">Не знаю</string>
+    <string name="feature_training_api_next">Далее</string>
+    <string name="feature_training_api_submit">Ответить</string>
+    <string name="feature_training_api_your_answer">Ваш ответ</string>
+    <string name="feature_training_api_enter_answer">Введите ответ</string>
+    <string name="feature_training_api_correct">Верно!</string>
+    <string name="feature_training_api_incorrect">Неверно</string>
+    <string name="feature_training_api_finish">Завершить</string>
+    <string name="feature_training_api_continue">Продолжить</string>
+    <string name="feature_training_api_exit">Выход</string>
+    <string name="feature_training_api_exit_title">Выйти из тренировки?</string>
+    <string name="feature_training_api_exit_message">Прогресс будет сохранён.</string>
+    <string name="feature_training_api_yes">Да</string>
+    <string name="feature_training_api_no">Нет</string>
+    <string name="feature_training_api_possible_answer">Возможный ответ:</string>
+    <string name="feature_training_api_display_error">Ошибка отображения</string>
+    <string name="feature_training_api_false_answer">ЛОЖЬ</string>
+    <string name="feature_training_api_true_answer">ИСТИНА</string>
+
+    <!-- Training Results -->
+    <string name="feature_training_api_training_completed">Тренировка завершена!</string>
+    <string name="feature_training_api_total_cards">Всего карточек: %d</string>
+    <string name="feature_training_api_correct_answers">Правильных ответов: %d</string>
+    <string name="feature_training_api_accuracy">Точность: %d%%</string>
+    <string name="feature_training_api_time_spent">Время: %s</string>
+
+    <!-- Empty State -->
+    <string name="feature_training_api_no_cards_title">Нет карточек для тренировки</string>
+    <string name="feature_training_api_no_cards_message">Добавьте карточки в эту колоду, чтобы начать тренировку</string>
+    <string name="feature_training_api_go_back">Назад</string>
+
+    <!-- Error State -->
+    <string name="feature_training_api_error_title">Ошибка загрузки тренировки</string>
+    <string name="feature_training_api_retry">Повторить</string>
+
+    <!-- Fill in the blank -->
+    <string name="feature_training_api_correct_answer">Правильный ответ</string>
+    <string name="feature_training_api_you_dont_answered">Вы не дали ответ</string>
+    <string name="feature_training_api_answer">Ответ:</string>
+    <string name="feature_training_api_give_answer">Дайте ответ на вопрос:</string>
+    <string name="feature_training_api_complete_answer">Дополните ответ:</string>
+    <string name="feature_training_api_submit_button">Ответить</string>
+
+
+
+
+</resources>

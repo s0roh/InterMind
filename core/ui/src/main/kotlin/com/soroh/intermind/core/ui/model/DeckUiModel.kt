@@ -8,4 +8,6 @@ data class DeckUiModel(
     val cardsCount: Int,
     val likes: Int,
     val trainings: Int,
+    val newCardsCount: Int = 0,
+    val reviewCardsCount: Int = 0
 )

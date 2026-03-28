@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -119,16 +118,7 @@ fun ExpandableCardItem(
             AnimatedVisibility(visible = isExpanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     when {
-                        card.attachment.isNullOrBlank() -> {
-//                            Box(
-//                                modifier = Modifier
-//                                    .width(144.dp)
-//                                    .height(97.dp),
-//                                contentAlignment = Alignment.Center
-//                            ) {
-//                                CircularProgressIndicator()
-//                            }
-                        }
+                        card.attachment.isNullOrBlank() -> {}
 
                         else -> {
                             AsyncImage(

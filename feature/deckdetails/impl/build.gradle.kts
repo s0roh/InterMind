@@ -29,6 +29,8 @@ dependencies {
     implementation(projects.feature.deckdetails.api)
     implementation(projects.feature.addeditdeck.api)
     implementation(projects.feature.addeditcard.api)
+    implementation(projects.feature.training.api)
+    implementation(projects.feature.trainingmodesettings.api)
     implementation(projects.core.ui)
     implementation(projects.core.data)
     implementation(projects.core.domain)

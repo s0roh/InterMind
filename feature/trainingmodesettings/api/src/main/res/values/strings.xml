@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_trainingmodesettings_api_settings">Настройки</string>
+    <string name="feature_trainingmodesettings_api_answer_selection_mode">Режим выбора ответов</string>
+    <string name="feature_trainingmodesettings_api_true_false_mode">Режим истина / ложь</string>
+    <string name="feature_trainingmodesettings_api_part_of_answer_mode">Ввод части ответа</string>
+    <string name="feature_trainingmodesettings_api_about_train_modes">О режимах</string>
+    <string name="feature_trainingmodesettings_api_choice_help_title">Выбор ответа</string>
+    <string name="feature_trainingmodesettings_api_choice_help_description">Выбирается один вариант ответа, а неправильные варианты берутся из других вопросов, если не указаны заранее.</string>
+    <string name="feature_trainingmodesettings_api_true_false_help_title">Истина или ложь</string>
+    <string name="feature_trainingmodesettings_api_true_false_help_description">Нужно определить, верен предложенный ответ на вопрос или нет.</string>
+    <string name="feature_trainingmodesettings_api_input_help_title">Ввод ответа</string>
+    <string name="feature_trainingmodesettings_api_input_help_description">Укажите недостающий фрагмент ответа. Подходит для длинных формулировок.</string>
+</resources>

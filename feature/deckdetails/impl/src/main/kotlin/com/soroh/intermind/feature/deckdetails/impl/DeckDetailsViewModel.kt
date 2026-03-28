@@ -10,6 +10,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,12 +30,15 @@ class DeckDetailsViewModel @AssistedInject constructor(
     private val _uiEvent = MutableSharedFlow<DeckDetailsEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
+    private var loadJob: Job? = null
+
     init {
         loadDeck(key.deckId)
     }
 
     private fun loadDeck(deckId: String) {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             try {
                 val deck = decksRepository.getDeckById(deckId)
                 if (deck != null) {
@@ -63,21 +67,7 @@ class DeckDetailsViewModel @AssistedInject constructor(
         }
     }
 
-    fun changePrivacy() {
-        val currentState = _uiState.value
-        if (currentState !is DeckDetailUiState.Success) return
-        viewModelScope.launch {
-            try {
-                val updatedDeck = currentState.deck.copy(isPublic = !currentState.deck.isPublic)
-                decksRepository.updateDeck(updatedDeck)
-                _uiState.value = currentState.copy(deck = updatedDeck)
-            } catch (e: Exception) {
-                _uiEvent.emit(DeckDetailsEvent.ShowError("Ошибка при смене приватности"))
-            }
-        }
-    }
-
-     fun deleteDeck() {
+    fun deleteDeck() {
         viewModelScope.launch {
             try {
                 decksRepository.deleteDeck(key.deckId)
@@ -89,6 +79,17 @@ class DeckDetailsViewModel @AssistedInject constructor(
 
     fun refreshCards() {
         loadDeck(key.deckId)
+    }
+
+    fun deleteCard(card: Card) {
+        viewModelScope.launch {
+            try {
+                decksRepository.deleteCard(card)
+                refreshCards()
+            } catch (e: Exception) {
+                _uiEvent.emit(DeckDetailsEvent.ShowError("Не удалось удалить карточку"))
+            }
+        }
     }
 
     @AssistedFactory
@@ -114,5 +115,3 @@ sealed interface DeckDetailUiState {
 sealed interface DeckDetailsEvent {
     data class ShowError(val message: String) : DeckDetailsEvent
 }
-
-

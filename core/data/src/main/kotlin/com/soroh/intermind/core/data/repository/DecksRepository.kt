@@ -1,6 +1,7 @@
 package com.soroh.intermind.core.data.repository
 
 import android.net.Uri
+import com.soroh.intermind.core.data.model.DeckTrainingStats
 import com.soroh.intermind.core.domain.entity.Card
 import com.soroh.intermind.core.domain.entity.Deck
 import kotlinx.coroutines.flow.Flow
@@ -11,6 +12,8 @@ import kotlinx.coroutines.flow.Flow
 interface DecksRepository {
 
     fun getDecks(): Flow<List<Deck>>
+
+    fun getDecksTrainingStats(dailyLimit: Int = 20): Flow<Map<String, DeckTrainingStats>>
 
     suspend fun refreshDecks()
 
