@@ -38,9 +38,13 @@ android {
 
 dependencies {
     implementation(projects.core.domain)
+    implementation(projects.core.ui)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
 
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)

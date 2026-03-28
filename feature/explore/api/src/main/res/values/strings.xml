@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_explore_api_title">Обзор</string>
+    <string name="feature_explore_api_searchbarpadding">searchBarPadding</string>
+    <string name="feature_explore_api_no_data">No Data</string>
+    <string name="feature_explore_api_no_results">Нет результатов</string>
+    <string name="feature_explore_api_wifi_error">Ошибка подключения</string>
+    <string name="feature_explore_api_retry">Повторить</string>
+    <string name="feature_explore_api_sorttypebackground">SortTypeBackground</string>
+    <string name="feature_explore_api_by_likes">По лайкам</string>
+    <string name="feature_explore_api_by_train">По тренировкам</string>
+    <string name="feature_explore_api_selected_mark">Выбрано</string>
+    <string name="feature_explore_api_favorites">Избранное</string>
+    <string name="feature_explore_api_favorite_icon">Favorite Icon</string>
+    <string name="feature_explore_api_search_decks">Поиск колод</string>
+
 </resources>
