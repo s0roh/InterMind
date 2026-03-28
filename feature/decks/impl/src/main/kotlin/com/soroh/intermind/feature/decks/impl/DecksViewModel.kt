@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -50,22 +49,6 @@ class DecksViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-
-//    val decks: StateFlow<List<DeckUiModel>> = decksRepository.getDecks()
-//        .map { domainList ->
-//            domainList.map { it.toUiModel() }
-//        }
-//        .flowOn(Dispatchers.Default)
-//        .onStart { _isRefreshing.value = true }
-//        .onEach { _isRefreshing.value = false }
-//        .catch { _ ->
-//            _isRefreshing.value = false
-//        }
-//        .stateIn(
-//            scope = viewModelScope,
-//            started = SharingStarted.WhileSubscribed(5000),
-//            initialValue = emptyList()
-//        )
 
     fun refreshDecks() {
         viewModelScope.launch {

@@ -1,6 +1,5 @@
 package com.soroh.intermind.feature.deckdetails.impl
 
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,9 +13,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -27,6 +26,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.soroh.intermind.core.designsystem.component.AppAlertDialog
 import com.soroh.intermind.core.designsystem.component.AppButton
@@ -42,8 +44,6 @@ import com.soroh.intermind.feature.deckdetails.impl.component.DeckInfoRow
 import com.soroh.intermind.feature.deckdetails.impl.component.DeckTitle
 import com.soroh.intermind.feature.deckdetails.impl.component.ErrorContent
 import com.soroh.intermind.feature.deckdetails.impl.component.TrainingScheduledTime
-import com.soroh.intermind.feature.deckdetails.impl.util.imageUriCacheSaver
-import com.soroh.intermind.feature.deckdetails.impl.util.rememberSavableWithMap
 
 @Composable
 fun DeckDetailsScreen(
@@ -75,13 +75,14 @@ fun DeckDetailsScreen(
         is DeckDetailUiState.Success -> {
             DeckDetailsContent(
                 state = currentState,
+                onRefresh = viewModel::refreshCards,
                 onBackClick = onBackClick,
                 onDeleteDeck = {
                     viewModel.deleteDeck()
                     onDeleteDeck()
                 },
                 onEditDeckClick = onEditDeckClick,
-                onDeleteCard = {},
+                onDeleteCard = viewModel::deleteCard,
                 onAddCardClick = onAddCardClick,
                 onEditCard = onEditCardClick,
                 onStartTrainingClick = onStartTrainingClick,
@@ -96,6 +97,7 @@ fun DeckDetailsScreen(
 @Composable
 private fun DeckDetailsContent(
     state: DeckDetailUiState.Success,
+    onRefresh: () -> Unit,
     onBackClick: () -> Unit,
     onDeleteDeck: () -> Unit,
     onEditDeckClick: (String) -> Unit,
@@ -105,6 +107,20 @@ private fun DeckDetailsContent(
     onStartTrainingClick: (deckId: String) -> Unit,
     onTrainingModeSettingsClick: (deckId: String) -> Unit,
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                onRefresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     var isBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -197,10 +213,6 @@ private fun DeckDetailsContent(
 
             val listState = rememberLazyListState()
             val expandedCardId = rememberSaveable { mutableStateOf<String?>(null) }
-            val imageUriCache = rememberSavableWithMap(
-                initialValue = { mutableStateMapOf<Int, Uri?>() },
-                saver = imageUriCacheSaver
-            )
             if (isBottomSheetOpen) {
                 CardListBottomSheet(
                     state = state,

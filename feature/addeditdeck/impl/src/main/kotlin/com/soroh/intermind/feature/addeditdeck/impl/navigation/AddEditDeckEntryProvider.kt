@@ -15,6 +15,7 @@ fun EntryProviderScope<NavKey>.addEditDeckEntry(navigator: Navigator) {
         }
         AddEditDeckScreen(
             viewModel = viewModel,
+            isEditMode = key.deckId.isNullOrEmpty(),
             onBackClick = navigator::goBack,
             onSaveClick = navigator::goBack
         )
