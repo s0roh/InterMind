@@ -267,9 +267,7 @@ class DecksRepositoryImpl @Inject constructor(
         Log.d(TAG, "deleteCardPicture: Успешно")
     }
 
-    private suspend fun getCurrentUserId(): String? {
-        return supabase.auth.sessionManager.loadSession()?.user?.id
-    }
+    private fun getCurrentUserId(): String? = supabase.auth.currentUserOrNull()?.id
 
     companion object {
         private const val TAG = "DecksRepository"

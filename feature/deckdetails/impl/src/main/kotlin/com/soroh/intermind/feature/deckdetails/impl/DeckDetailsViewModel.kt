@@ -1,6 +1,5 @@
 package com.soroh.intermind.feature.deckdetails.impl
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soroh.intermind.core.data.repository.DecksRepository
@@ -18,7 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel(assistedFactory = DeckDetailsViewModel.Factory::class)
 class DeckDetailsViewModel @AssistedInject constructor(
@@ -39,25 +37,16 @@ class DeckDetailsViewModel @AssistedInject constructor(
     }
 
     private fun loadDeck(deckId: String) {
-        Log.d("LoadDeck", "loadDeck called for deckId: $deckId")
-        //loadJob?.cancel()
-       viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             try {
-                Log.d("LoadDeck", "Starting coroutine")
-                _uiState.value = DeckDetailUiState.Loading
-
-                Log.d("LoadDeck", "Getting deck...")
                 val deck = decksRepository.getDeckById(deckId)
-                Log.d("LoadDeck", "Deck received: ${deck?.id}")
                 if (deck != null) {
-                    Log.d("LoadDeck", "Checking isOwner...")
                     val isOwner = decksRepository.isDeckOwner(deckId)
-                    Log.d("LoadDeck", "isOwner: $isOwner")
 
-                    Log.d("LoadDeck", "Getting cards for deck...")
                     decksRepository.getCardsForDeck(deckId).collect { cardsList ->
-                        Log.d("LoadDeck", "Cards collected: ${cardsList.size} cards")
                         val currentState = _uiState.value
+
                         if (currentState is DeckDetailUiState.Success) {
                             _uiState.value = currentState.copy(cards = cardsList)
                         } else {
@@ -69,16 +58,10 @@ class DeckDetailsViewModel @AssistedInject constructor(
                             )
                         }
                     }
-                    Log.d("LoadDeck", "Finished collecting (should not reach here if flow infinite)")
                 } else {
-                    Log.e("LoadDeck", "Deck not found")
                     _uiState.value = DeckDetailUiState.Error("Колода не найдена")
                 }
-            } catch (e: CancellationException) {
-                Log.d("LoadDeck", "Job cancelled")
-                throw e
             } catch (e: Exception) {
-                Log.e("LoadDeck", "Error loading deck: ${e.message}", e)
                 _uiState.value = DeckDetailUiState.Error(e.localizedMessage ?: "Неизвестная ошибка")
             }
         }
@@ -88,14 +71,14 @@ class DeckDetailsViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 decksRepository.deleteDeck(key.deckId)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiEvent.emit(DeckDetailsEvent.ShowError("Не удалось удалить колоду"))
             }
         }
     }
 
     fun refreshCards() {
-        //loadDeck(key.deckId)
+        loadDeck(key.deckId)
     }
 
     fun deleteCard(card: Card) {
@@ -103,7 +86,7 @@ class DeckDetailsViewModel @AssistedInject constructor(
             try {
                 decksRepository.deleteCard(card)
                 refreshCards()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiEvent.emit(DeckDetailsEvent.ShowError("Не удалось удалить карточку"))
             }
         }

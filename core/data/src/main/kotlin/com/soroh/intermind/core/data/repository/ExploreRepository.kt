@@ -10,10 +10,11 @@ import kotlinx.coroutines.flow.Flow
 interface ExploreRepository {
 
     fun getPublicDecks(
-        query: String? = null,
         sortBy: String? = null,
         category: String? = null,
     ): Flow<PagingData<DeckUiModel>>
+
+    suspend fun searchPublicDecks(query: String): List<DeckUiModel>
 
     suspend fun likeDeck(deckId: String)
 

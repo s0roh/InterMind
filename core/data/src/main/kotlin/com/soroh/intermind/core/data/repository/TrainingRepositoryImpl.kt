@@ -364,9 +364,7 @@ class TrainingRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun getCurrentUserId(): String? {
-        return supabase.auth.sessionManager.loadSession()?.user?.id
-    }
+    private fun getCurrentUserId(): String? = supabase.auth.currentUserOrNull()?.id
 
     private fun addMillisToNow(millis: Long): Instant {
         return Clock.System.now().plus(millis, DateTimeUnit.MILLISECOND)

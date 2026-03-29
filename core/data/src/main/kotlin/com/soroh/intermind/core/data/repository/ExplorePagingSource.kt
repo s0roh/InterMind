@@ -12,10 +12,10 @@ import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.coroutines.cancellation.CancellationException
 
 internal class ExplorePagingSource(
     private val supabase: SupabaseClient,
-    private val query: String? = null,
     private val sortBy: String? = null,
     private val category: String? = null,
 ) : PagingSource<Int, DeckUiModel>() {
@@ -34,83 +34,74 @@ internal class ExplorePagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, DeckUiModel> {
         val page = params.key ?: 0
-        val pageSize = params.loadSize
-
-        val from = page * pageSize.toLong()
-        val to = from + pageSize - 1
+        val from = page * params.loadSize.toLong()
+        val to = from + params.loadSize - 1
 
         return try {
-            val userId = getCurrentUserId()
-                ?: throw IllegalStateException("User must be logged in to create a deck")
+            val userId = supabase.auth.currentUserOrNull()?.id
+                ?: throw IllegalStateException("User must be logged in")
 
             val showOnlyFavourites = category == "favourite"
 
-            val favouriteIds = userFavouritesTable
-                .select(columns = Columns.list("deck_id")) {
-                    filter { eq("user_id", userId) }
-                }
-                .decodeList<FavouriteDto>()
-                .map { it.deckId }
-                .toSet()
-
-            val decks = if (showOnlyFavourites) {
-                userFavouritesTable
-                    .select(columns = Columns.list("deck_id, decks!inner(*)")) {
-                        filter {
-                            eq("user_id", userId)
-                            if (!query.isNullOrBlank()) {
-                                ilike("decks.name", "%$query%")
-                            }
-                        }
-                        val sortColumn = when (sortBy) {
-                            "likes" -> "decks.likes"
-                            "trainings" -> "decks.trainings"
-                            else -> "decks.created_at"
-                        }
-                        order(sortColumn, Order.DESCENDING)
-                        range(from, to)
-                    }
-                    .decodeList<FavouriteWithDeckDto>()
-                    .map { it.deck }
-            } else {
-                decksTable.select {
-                    filter {
-                        eq("is_public", true)
-                        if (!query.isNullOrBlank()) {
-                            ilike("name", "%$query%")
-                        }
-                    }
-                    val sortColumn = when (sortBy) {
-                        "likes" -> "likes"
-                        "trainings" -> "trainings"
-                        else -> "created_at"
-                    }
-                    order(sortColumn, Order.DESCENDING)
-                    range(from, to)
-                }.decodeList<DeckDto>()
+            val mainSort = when (sortBy) {
+                "likes" -> "likes"
+                "trainings" -> "trainings"
+                else -> "created_at"
             }
 
+            val decks: List<DeckDto>
+            val favouriteIds: Set<String>
+
+            if (showOnlyFavourites) {
+                decks = decksTable.select(
+                    columns = Columns.raw("*, user_favourites!inner(user_id)")
+                ) {
+                    filter { eq("user_favourites.user_id", userId) }
+                    order(mainSort, Order.DESCENDING)
+                    order("created_at", Order.DESCENDING)
+                    order("id", Order.ASCENDING)   // стабильность
+                    range(from = from, to = to)
+                }.decodeList<DeckDto>()
+                favouriteIds = decks.mapNotNull { it.id }.toSet()
+            } else {
+                decks = decksTable.select {
+                    filter { eq("is_public", true) }
+                    order(mainSort, Order.DESCENDING)
+                    order("created_at", Order.DESCENDING)
+                    order("id", Order.ASCENDING)
+                    range(from = from, to = to)
+                }.decodeList<DeckDto>()
+
+                favouriteIds = if (decks.isNotEmpty()) {
+                    val deckIds = decks.mapNotNull { it.id }
+                    userFavouritesTable.select(columns = Columns.list("deck_id")) {
+                        filter {
+                            eq("user_id", userId)
+                            isIn("deck_id", deckIds)
+                        }
+                    }.decodeList<FavouriteDto>().map { it.deckId }.toSet()
+                } else emptySet()
+            }
+
+            val ids = decks.mapNotNull { it.id }
+            require(ids.size == ids.toSet().size) { "Duplicate deck ids in page $page: $ids" }
+
             val uiModels = decks.map { deckDto ->
-                deckDto.toDomain().toUiModel(
-                    isLiked = favouriteIds.contains(deckDto.id)
-                )
+                deckDto.toDomain().toUiModel(isLiked = favouriteIds.contains(deckDto.id))
             }
 
             LoadResult.Page(
                 data = uiModels,
                 prevKey = if (page == 0) null else page - 1,
-                nextKey = if (uiModels.size < pageSize) null else page + 1
+                nextKey = if (uiModels.size < params.loadSize) null else page + 1
             )
-
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             LoadResult.Error(e)
         }
     }
-
-    private suspend fun getCurrentUserId(): String? {
-        return supabase.auth.sessionManager.loadSession()?.user?.id
-    }
 }
+
 
 fun Deck.toUiModel(
     isLiked: Boolean,

@@ -4,12 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.map
 import com.soroh.intermind.core.data.repository.ExploreRepository
 import com.soroh.intermind.core.ui.model.DeckUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,40 +16,65 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.collections.copy
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
     private val exploreRepository: ExploreRepository
 ) : ViewModel() {
 
-    private val filtersFlow = MutableStateFlow(PublicDeckFilters())
-    private var searchJob: Job? = null
+    private val filtersFlow = MutableStateFlow(PublicDeckFilters(sortBy = "likes"))
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val decksFlow: Flow<PagingData<DeckUiModel>> = filtersFlow
-        .flatMapLatest { filters ->
-            exploreRepository.getPublicDecks(
-                query = filters.query,
-                sortBy = filters.sortBy,
-                category = filters.category
-            )
-        }.cachedIn(viewModelScope)
+    private val _pagingDataFlow = MutableStateFlow<PagingData<DeckUiModel>>(PagingData.empty())
+    val decksFlow = _pagingDataFlow.asStateFlow()
+
+    private val _searchResults = MutableStateFlow<List<DeckUiModel>>(emptyList())
+    val searchResults = _searchResults.asStateFlow()
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            filtersFlow.flatMapLatest { filters ->
+                exploreRepository.getPublicDecks(
+                    sortBy = filters.sortBy,
+                    category = filters.category
+                )
+            }.cachedIn(viewModelScope).collect {
+                _pagingDataFlow.value = it
+            }
+        }
+    }
 
     private val _state = MutableStateFlow(PublicDecksScreenState())
     val state = _state.asStateFlow()
 
     fun toggleLike(deck: DeckUiModel) {
-        viewModelScope.launch {
-            if (deck.isLiked) {
-                exploreRepository.unlikeDeck(deck.id)
-            } else {
-                exploreRepository.likeDeck(deck.id)
-            }
+        _pagingDataFlow.value = _pagingDataFlow.value.map { item ->
+            if (item.id == deck.id) {
+                item.copy(
+                    isLiked = !deck.isLiked,
+                    likes = if (deck.isLiked) deck.likes - 1 else deck.likes + 1
+                )
+            } else item
+        }
 
-            // Вариант 1: Просто обновить список целиком (самый надежный для Paging)
-            // Это заставит PagingSource заново загрузить данные с актуальными лайками
-            filtersFlow.value = filtersFlow.value.copy()
+        _searchResults.update { currentList ->
+            currentList.map { item ->
+                if (item.id == deck.id) {
+                    item.copy(
+                        isLiked = !deck.isLiked,
+                        likes = if (deck.isLiked) deck.likes - 1 else deck.likes + 1
+                    )
+                } else item
+            }
+        }
+
+        viewModelScope.launch {
+            if (deck.isLiked) exploreRepository.unlikeDeck(deck.id)
+            else exploreRepository.likeDeck(deck.id)
+
         }
     }
 
@@ -58,13 +82,19 @@ class ExploreViewModel @Inject constructor(
         _state.update { it.copy(query = query) }
 
         if (query.isBlank()) {
-            //searchJob?.cancel()
-            filtersFlow.update { it.copy(query = null) }
-        } else {
-            //searchJob?.cancel()
-            searchJob = viewModelScope.launch {
-                delay(500)
-                filtersFlow.update { it.copy(query = query) }
+            _isSearching.value = false
+            _searchResults.value = emptyList()
+            return
+        }
+
+        _isSearching.value = true
+
+        viewModelScope.launch {
+            try {
+                val results = exploreRepository.searchPublicDecks(query)
+                _searchResults.value = results
+            } catch (_: Exception) {
+                _searchResults.value = emptyList()
             }
         }
     }
@@ -99,7 +129,6 @@ enum class DeckCategory(val value: String?) {
 }
 
 data class PublicDeckFilters(
-    val query: String? = null,
     val sortBy: String? = null,
     val category: String? = null
 )

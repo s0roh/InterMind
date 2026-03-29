@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +18,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -49,7 +49,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +58,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
-import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.soroh.intermind.core.ui.component.DeckDisplayMode
@@ -82,7 +80,9 @@ fun ExploreScreen(
     val savedScrollPosition = rememberSaveable { mutableIntStateOf(0) }
     val savedScrollOffset = rememberSaveable { mutableIntStateOf(0) }
 
-    val decks = viewModel.decksFlow.collectAsLazyPagingItems()
+    val isSearching by viewModel.isSearching.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
+    val pagingItems = viewModel.decksFlow.collectAsLazyPagingItems()
 
     val isScrollingDown = remember { derivedStateOf { listState.firstVisibleItemScrollOffset > 0 } }
 
@@ -91,7 +91,6 @@ fun ExploreScreen(
         label = stringResource(R.string.feature_explore_api_searchbarpadding)
     )
 
-    // Восстановление позиции скролла только при переходе searchBarExpanded: true -> false
     LaunchedEffect(searchBarExpanded.value) {
         val wasExpanded = previousExpanded.value
         val isNowCollapsed = !searchBarExpanded.value
@@ -107,14 +106,15 @@ fun ExploreScreen(
     }
 
     PullToRefreshBox(
-        isRefreshing = decks.loadState.refresh is LoadState.Loading,
-        onRefresh = { decks.refresh() },
+        isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
+        onRefresh = { pagingItems.refresh() },
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             SearchBarComponent(
                 screenState = state,
                 searchBarExpanded = searchBarExpanded,
-                lazyPagingItems = decks,
+                searchResults = searchResults,
+                isSearching = isSearching,
                 onQueryChange = viewModel::updateSearchQuery,
                 onLikeToggle = viewModel::toggleLike,
                 onDeckClick = onDeckClick,
@@ -132,10 +132,10 @@ fun ExploreScreen(
             }
 
             HandlePagingLoadState(
-                loadState = decks.loadState.refresh,
-                itemCount = decks.itemCount,
+                loadState = pagingItems.loadState.refresh,
+                itemCount = pagingItems.itemCount,
                 isLikeCategorySelected = state.category == DeckCategory.LIKED,
-                onRetry = { decks.retry() }
+                onRetry = { pagingItems.retry() }
             ) {
                 LazyColumn(
                     modifier = Modifier,
@@ -143,10 +143,10 @@ fun ExploreScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     items(
-                        count = decks.itemCount,
-                        key = decks.itemKey { it.id }
+                        count = pagingItems.itemCount,
+                        key = pagingItems.itemKey { it.id }
                     ) { index ->
-                        decks[index]?.let { deck ->
+                        pagingItems[index]?.let { deck ->
                             DeckItem(
                                 deck = deck,
                                 mode = DeckDisplayMode.SOCIAL,
@@ -356,7 +356,8 @@ private fun SortAndCategoryFilters(
 private fun SearchBarComponent(
     screenState: PublicDecksScreenState,
     searchBarExpanded: MutableState<Boolean>,
-    lazyPagingItems: LazyPagingItems<DeckUiModel>,
+    searchResults: List<DeckUiModel>,
+    isSearching: Boolean,
     onQueryChange: (String) -> Unit,
     onDeckClick: (String) -> Unit,
     onLikeToggle: (DeckUiModel) -> Unit,
@@ -364,8 +365,8 @@ private fun SearchBarComponent(
 ) {
     val inputField = @Composable {
         InputField(
-            query = screenState.query, // Берем из стейта
-            onQueryChange = onQueryChange, // Вызываем метод ViewModel
+            query = screenState.query,
+            onQueryChange = onQueryChange,
             onSearch = { onQueryChange(it) },
             expanded = searchBarExpanded.value,
             onExpandedChange = { searchBarExpanded.value = it },
@@ -375,7 +376,7 @@ private fun SearchBarComponent(
                     IconButton(
                         onClick = {
                             searchBarExpanded.value = false
-                            onQueryChange("") // Сбрасываем поиск
+                            onQueryChange("")
                         }
                     ) {
                         Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = null)
@@ -408,22 +409,18 @@ private fun SearchBarComponent(
         shape = MaterialTheme.shapes.medium,
         modifier = modifier
     ) {
-        if (lazyPagingItems.itemCount == 0) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = stringResource(R.string.feature_explore_api_no_results))
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(
-                    count = lazyPagingItems.itemCount,
-                    key = lazyPagingItems.itemKey { it.id }
-                ) { index ->
-                    val deck = lazyPagingItems[index]
-                    if (deck != null) {
+
+        if (isSearching) {
+            if (searchResults.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = stringResource(R.string.feature_explore_api_no_results))
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                ) {
+                    items(searchResults, key = { it.id }) { deck ->
                         DeckItem(
                             deck = deck,
                             mode = DeckDisplayMode.SOCIAL,
@@ -432,8 +429,8 @@ private fun SearchBarComponent(
                             modifier = Modifier.animateItem()
                         )
                     }
+                    item { Spacer(Modifier.imePadding()) }
                 }
-                item { Spacer(Modifier.imePadding()) }
             }
         }
     }
