@@ -71,6 +71,41 @@ class DecksRepositoryImpl @Inject constructor(
                 }
             }.flowOn(Dispatchers.IO)
 
+    override fun getTrainedExternalDecks(): Flow<List<Deck>> =
+        refreshTrigger.onStart { emit(Unit) }
+            .flatMapLatest {
+                flow {
+                    val userId = getCurrentUserId() ?: return@flow emit(emptyList())
+
+                    val response = supabase.postgrest.rpc(
+                        function = "get_trained_external_decks",
+                        parameters = buildJsonObject {
+                            put("p_user_id", userId)
+                        }
+                    ).decodeList<DeckDto>()
+
+                    emit(response.map { it.toDomain() })
+
+                }
+            }.flowOn(Dispatchers.IO)
+
+    override fun getFavouriteDecks(): Flow<List<Deck>> =
+        refreshTrigger.onStart { emit(Unit) }
+            .flatMapLatest {
+                flow {
+                    val userId = getCurrentUserId() ?: return@flow emit(emptyList())
+
+                    val response = supabase.postgrest.rpc(
+                        function = "get_favourite_decks",
+                        parameters = buildJsonObject {
+                            put("p_user_id", userId)
+                        }
+                    ).decodeList<DeckDto>()
+
+                    emit(response.map { it.toDomain() })
+                }
+            }.flowOn(Dispatchers.IO)
+
     private fun fetchDecks(): Flow<List<Deck>> = flow {
         val userId = getCurrentUserId() ?: run {
             emit(emptyList())
@@ -249,7 +284,10 @@ class DecksRepositoryImpl @Inject constructor(
         val path = card?.picturePath
 
         if (path == null) {
-            Log.w(TAG, "deleteCardPicture: picture_path уже равен null в БД. Удалять из Storage нечего.")
+            Log.w(
+                TAG,
+                "deleteCardPicture: picture_path уже равен null в БД. Удалять из Storage нечего."
+            )
         } else {
             Log.d(TAG, "deleteCardPicture: Удаляю файл из Storage по пути: $path")
             try {

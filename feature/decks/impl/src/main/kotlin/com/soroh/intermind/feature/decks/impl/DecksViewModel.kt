@@ -2,8 +2,10 @@ package com.soroh.intermind.feature.decks.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.soroh.intermind.core.data.model.DeckTrainingStats
 import com.soroh.intermind.core.data.repository.DecksRepository
 import com.soroh.intermind.core.domain.entity.Deck
+import com.soroh.intermind.core.ui.component.DeckDisplayMode
 import com.soroh.intermind.core.ui.model.DeckUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -24,20 +26,36 @@ import javax.inject.Inject
 class DecksViewModel @Inject constructor(
     private val decksRepository: DecksRepository
 ) : ViewModel() {
+
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
-    val decks: StateFlow<List<DeckUiModel>> = combine(
+    val decks: StateFlow<List<DecksScreenItem>> = combine(
         decksRepository.getDecks(),
+        decksRepository.getFavouriteDecks(),
+        decksRepository.getTrainedExternalDecks(),
         decksRepository.getDecksTrainingStats(dailyLimit = 20)
-    ) { domainDecks, statsMap ->
-        domainDecks.map { deck ->
-            val stats = statsMap[deck.id]
-            deck.toUiModel(
-                newCount = stats?.newCount ?: 0,
-                reviewCount = stats?.reviewCount ?: 0
-            )
+    ) { myDecks, favDecks, trainedDecks, statsMap ->
+
+        val items = mutableListOf<DecksScreenItem>()
+
+        if (myDecks.isNotEmpty()) {
+            items.add(DecksScreenItem.Header("Мои колоды"))
+            items.addAll(myDecks.toUiModels(statsMap, DeckDisplayMode.PERSONAL))
         }
+
+        if (favDecks.isNotEmpty()) {
+            items.add(DecksScreenItem.Header("Избранное"))
+            items.addAll(favDecks.toUiModels(statsMap, DeckDisplayMode.PUBLIC_TRAINED))
+        }
+
+        if (trainedDecks.isNotEmpty()) {
+            items.add(DecksScreenItem.Header("Недавние тренировки"))
+            items.addAll(trainedDecks.toUiModels(statsMap, DeckDisplayMode.PUBLIC_TRAINED))
+        }
+
+        items
+
     }.flowOn(Dispatchers.Default)
         .onStart { _isRefreshing.value = true }
         .onEach { _isRefreshing.value = false }
@@ -55,6 +73,22 @@ class DecksViewModel @Inject constructor(
             decksRepository.refreshDecks()
         }
     }
+
+    private fun List<Deck>.toUiModels(
+        statsMap: Map<String, DeckTrainingStats>,
+        mode: DeckDisplayMode
+    ): List<DecksScreenItem.DeckItem> {
+        return this.map { deck ->
+            val stats = statsMap[deck.id]
+            DecksScreenItem.DeckItem(
+                deck.toUiModel(
+                    newCount = stats?.newCount ?: 0,
+                    reviewCount = stats?.reviewCount ?: 0,
+                ),
+                mode = mode
+            )
+        }
+    }
 }
 
 fun Deck.toUiModel(newCount: Int, reviewCount: Int): DeckUiModel {
@@ -69,4 +103,12 @@ fun Deck.toUiModel(newCount: Int, reviewCount: Int): DeckUiModel {
         newCardsCount = newCount,
         reviewCardsCount = reviewCount
     )
+}
+
+sealed interface DecksScreenItem {
+    data class Header(val title: String) : DecksScreenItem
+    data class DeckItem(
+        val deck: DeckUiModel,
+        val mode: DeckDisplayMode
+    ) : DecksScreenItem
 }

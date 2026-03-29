@@ -121,8 +121,3 @@ fun Deck.toUiModel(
 internal data class FavouriteDto(
     @SerialName("deck_id") val deckId: String
 )
-
-@Serializable
-internal data class FavouriteWithDeckDto(
-    @SerialName("decks") val deck: DeckDto
-)
