@@ -26,13 +26,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.soroh.intermind.core.designsystem.component.CenteredTopAppBar
-import com.soroh.intermind.core.ui.component.DeckDisplayMode
 import com.soroh.intermind.core.ui.component.DeckItem
 import com.soroh.intermind.feature.decks.api.R
 
@@ -55,7 +55,7 @@ fun DecksScreen(
         }
     }
 
-    val decks by viewModel.decks.collectAsState()
+    val items by viewModel.decks.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     val refreshState = rememberPullToRefreshState()
@@ -88,13 +88,29 @@ fun DecksScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(16.dp)
             ) {
-                items(items = decks, key = { it.id }) { deck ->
-                    DeckItem(
-                        modifier = Modifier.animateItem(),
-                        deck = deck,
-                        mode = DeckDisplayMode.PERSONAL,
-                        onDeckClick = { onDeckClick(deck.id) }
-                    )
+                items(items = items, key = { item ->
+                    when (item) {
+                        is DecksScreenItem.Header -> item.title
+                        is DecksScreenItem.DeckItem -> item.deck.id
+                    }
+                }) {item ->
+                    when (item) {
+                        is DecksScreenItem.Header -> {
+                            Text(
+                                text = item.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        is DecksScreenItem.DeckItem -> {
+                            DeckItem(
+                                modifier = Modifier.animateItem(),
+                                deck = item.deck,
+                                mode = item.mode,
+                                onDeckClick = { onDeckClick(item.deck.id) }
+                            )
+                        }
+                    }
                 }
                 item {
                     Spacer(modifier = Modifier.height(180.dp))

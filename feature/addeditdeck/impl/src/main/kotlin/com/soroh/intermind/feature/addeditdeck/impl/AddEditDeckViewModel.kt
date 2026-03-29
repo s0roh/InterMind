@@ -1,5 +1,6 @@
 package com.soroh.intermind.feature.addeditdeck.impl
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soroh.intermind.core.data.repository.DecksRepository
@@ -100,7 +101,11 @@ class AddEditDeckViewModel @AssistedInject constructor(
                 // Успешно сохранили - отправляем ивент для навигации
                 _uiEvent.emit(AddEditDeckEvent.DeckSaved)
 
+                Log.d("!@#", "created")
+
+
             } catch (e: Exception) {
+                Log.e("!@#", e.message.toString())
                 _uiState.update { it.copy(isSaveButtonEnabled = true, isLoading = false) }
                 _uiEvent.emit(AddEditDeckEvent.ShowError(e.message ?: "Ошибка при сохранении"))
             }

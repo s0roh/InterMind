@@ -54,6 +54,7 @@ import com.soroh.intermind.core.ui.util.formatCount
 enum class DeckDisplayMode {
     SOCIAL,
     PERSONAL,
+    PUBLIC_TRAINED
 }
 
 @Composable
@@ -283,7 +284,7 @@ private fun DeckItemPreview() {
                         likes = 15420,
                         trainings = 892
                     ),
-                    mode = DeckDisplayMode.PERSONAL
+                    mode = DeckDisplayMode.PUBLIC_TRAINED
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))

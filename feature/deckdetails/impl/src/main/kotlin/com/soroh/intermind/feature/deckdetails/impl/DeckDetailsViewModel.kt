@@ -71,7 +71,7 @@ class DeckDetailsViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 decksRepository.deleteDeck(key.deckId)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiEvent.emit(DeckDetailsEvent.ShowError("Не удалось удалить колоду"))
             }
         }
@@ -86,7 +86,7 @@ class DeckDetailsViewModel @AssistedInject constructor(
             try {
                 decksRepository.deleteCard(card)
                 refreshCards()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiEvent.emit(DeckDetailsEvent.ShowError("Не удалось удалить карточку"))
             }
         }

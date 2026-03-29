@@ -15,6 +15,10 @@ interface DecksRepository {
 
     fun getDecksTrainingStats(dailyLimit: Int = 20): Flow<Map<String, DeckTrainingStats>>
 
+    fun getTrainedExternalDecks(): Flow<List<Deck>>
+
+    fun getFavouriteDecks(): Flow<List<Deck>>
+
     suspend fun refreshDecks()
 
     suspend fun getDeckById(deckId: String): Deck?
