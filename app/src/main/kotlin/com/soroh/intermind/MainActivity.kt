@@ -27,7 +27,7 @@ import com.soroh.intermind.core.designsystem.theme.InterMindTheme
 import com.soroh.intermind.core.designsystem.util.SnackbarController
 import com.soroh.intermind.feature.auth.api.navigation.ResetPasswordNavKey
 import com.soroh.intermind.feature.auth.impl.AuthScreen
-import com.soroh.intermind.ui.InterMindApp
+import com.soroh.intermind.ui.InterMindScreen
 import com.soroh.intermind.util.DeepLinkHandler
 import com.soroh.intermind.util.ObserveAsEvents
 import dagger.hilt.android.AndroidEntryPoint
@@ -112,7 +112,7 @@ class MainActivity : ComponentActivity() {
                         label = "RootNavigation"
                     ) { authenticated ->
                         if (authenticated && !isResettingPassword) {
-                            InterMindApp()
+                            InterMindScreen()
                         } else {
                             AuthScreen(
                                 deepLinkKey = currentDeepLinkKey,

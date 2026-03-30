@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "728720513819",
+    "project_id": "intermind-b4699",
+    "storage_bucket": "intermind-b4699.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:728720513819:android:407064a18a7f7651f651be",
+        "android_client_info": {
+          "package_name": "com.soroh.intermind"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAk5D35LHGjhigxcQzhxMCCSOlJ4dVB0RA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

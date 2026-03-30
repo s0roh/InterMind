@@ -1,5 +1,7 @@
 package com.soroh.intermind.core.data.repository
 
+import android.os.Build
+import android.util.Log
 import com.soroh.intermind.core.data.mapper.AuthErrorMapper
 import com.soroh.intermind.core.data.model.AuthResponse
 import io.github.jan.supabase.SupabaseClient
@@ -7,12 +9,14 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.providers.builtin.IDToken
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import javax.inject.Inject
@@ -23,6 +27,9 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     private val supabase: SupabaseClient
 ) : AuthRepository {
+
+    private val userDevicesTable
+        get() = supabase.postgrest["user_devices"]
 
     override fun signUpWithEmail(
         name: String,
@@ -77,6 +84,24 @@ class AuthRepositoryImpl @Inject constructor(
     override fun signOut(): Flow<AuthResponse> = authResponseFlow {
         supabase.auth.signOut()
         emit(AuthResponse.Success)
+    }
+
+    override suspend fun saveFcmToken(token: String) = withContext(Dispatchers.IO) {
+        val userId = supabase.auth.currentUserOrNull()?.id ?: return@withContext
+
+        try {
+            userDevicesTable.upsert(
+                buildJsonObject {
+                    put("user_id", userId)
+                    put("fcm_token", token)
+                    put("device_model", "${Build.MANUFACTURER} ${Build.MODEL}")
+                },
+            ) {
+                onConflict = "fcm_token"
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepo", "Failed to save token", e)
+        }
     }
 
     private fun authResponseFlow(
