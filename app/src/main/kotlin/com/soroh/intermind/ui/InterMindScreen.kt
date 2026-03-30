@@ -3,7 +3,7 @@ package com.soroh.intermind.ui
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import android.widget.Toast
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -27,6 +27,7 @@ import com.soroh.intermind.core.designsystem.component.InterMindNavigationBar
 import com.soroh.intermind.core.designsystem.component.InterMindNavigationBarItem
 import com.soroh.intermind.core.navigation.NavigationState
 import com.soroh.intermind.core.navigation.Navigator
+import com.soroh.intermind.core.navigation.deeplink.DeepLinkKey
 import com.soroh.intermind.core.navigation.rememberNavigationState
 import com.soroh.intermind.core.navigation.toEntries
 import com.soroh.intermind.fearure.addeditcard.impl.navigation.addEditCardEntry
@@ -44,6 +45,7 @@ import com.soroh.intermind.navigation.TOP_LEVEL_NAV_ITEMS
 @Composable
 fun InterMindScreen(
     modifier: Modifier = Modifier,
+    deepLinkKey: DeepLinkKey?,
     viewModel: InterMindViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -53,10 +55,6 @@ fun InterMindScreen(
     ) { isGranted: Boolean ->
         if (isGranted) {
             viewModel.syncFcmToken()
-        }
-        else {
-            // Permission is denied.
-            Toast.makeText(context, "Notification permission denied.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -77,6 +75,13 @@ fun InterMindScreen(
     val navigationState = rememberNavigationState(ExploreNavKey, TOP_LEVEL_NAV_ITEMS.keys)
     val navigator = remember { Navigator(navigationState) }
     val shouldShowBottomBar = navigationState.currentKey in TOP_LEVEL_NAV_ITEMS.keys
+
+    LaunchedEffect(deepLinkKey) {
+        if (deepLinkKey is NavKey) {
+            Log.d("!@#", "Force navigating to: $deepLinkKey")
+            navigator.navigate(deepLinkKey)
+        }
+    }
 
     Scaffold(
         modifier = modifier,

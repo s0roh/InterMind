@@ -2,9 +2,12 @@ package com.soroh.intermind.core.data.service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Intent
 import android.media.RingtoneManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.soroh.intermind.core.data.repository.AuthRepository
@@ -17,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class InterMindMessagingService: FirebaseMessagingService() {
+class InterMindMessagingService : FirebaseMessagingService() {
 
     @Inject
     lateinit var authRepository: AuthRepository
@@ -26,7 +29,6 @@ class InterMindMessagingService: FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         Log.d(TAG, "Refreshed token: $token")
-        // Отправляем новый токен в Supabase
         serviceScope.launch {
             authRepository.saveFcmToken(token)
         }
@@ -34,32 +36,52 @@ class InterMindMessagingService: FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val title = remoteMessage.notification?.title ?: remoteMessage.data["title"] ?: "InterMind"
-        val body = remoteMessage.notification?.body ?: remoteMessage.data["body"] ?: "Пора повторить карточки!"
+        val body = remoteMessage.notification?.body ?: remoteMessage.data["body"]
+        ?: "Пора повторить карточки!"
 
-        sendNotification(title, body, remoteMessage.data)
+        val deepLink = remoteMessage.data["deeplink"]
+
+        sendNotification(title, body, deepLink)
     }
 
-    private fun sendNotification(title: String, body: String, data: Map<String, String>) {
+    private fun sendNotification(title: String, body: String, deepLink: String?) {
+
+        val uri = deepLink?.toUri()
+
+        val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+            `package` = packageName // Гарантирует открытие именно нашего приложения
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         val channelId = "TrainingReminders"
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            // Замени на иконку своего приложения (желательно монохромную с прозрачным фоном)
             .setSmallIcon(android.R.drawable.ic_popup_reminder)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)
             .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+            .setContentIntent(pendingIntent)
 
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         val channel = NotificationChannel(
             channelId,
-            "Напоминания о тренировках", // То, что увидит пользователь в настройках Android
+            "Напоминания о тренировках",
             NotificationManager.IMPORTANCE_DEFAULT
         )
         notificationManager.createNotificationChannel(channel)
 
-        notificationManager.notify(notificationIdCounter.getAndIncrement(), notificationBuilder.build())
+        notificationManager.notify(
+            notificationIdCounter.getAndIncrement(),
+            notificationBuilder.build()
+        )
     }
 
     companion object {
