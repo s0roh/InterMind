@@ -1,6 +1,8 @@
 package com.soroh.intermind
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,9 +27,10 @@ import androidx.compose.ui.Modifier
 import com.soroh.intermind.core.designsystem.component.CountdownSnackbar
 import com.soroh.intermind.core.designsystem.theme.InterMindTheme
 import com.soroh.intermind.core.designsystem.util.SnackbarController
+import com.soroh.intermind.core.navigation.deeplink.DeepLinkKey
 import com.soroh.intermind.feature.auth.api.navigation.ResetPasswordNavKey
 import com.soroh.intermind.feature.auth.impl.AuthScreen
-import com.soroh.intermind.ui.InterMindApp
+import com.soroh.intermind.ui.InterMindScreen
 import com.soroh.intermind.util.DeepLinkHandler
 import com.soroh.intermind.util.ObserveAsEvents
 import dagger.hilt.android.AndroidEntryPoint
@@ -47,12 +50,17 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var deepLinkHandler: DeepLinkHandler
 
+    private var currentDeepLinkKey by mutableStateOf<DeepLinkKey?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supabase.handleDeeplinks(intent)
         enableEdgeToEdge()
 
-        val initialDeepLinkKey = intent?.data?.let { deepLinkHandler.handleDeepLink(it) }
+        intent?.data?.let { uri ->
+            currentDeepLinkKey = deepLinkHandler.handleDeepLink(uri)
+            Log.d("!@#", "MainActivity onCreate: parsed $currentDeepLinkKey")
+        }
 
         setContent {
             InterMindTheme {
@@ -101,7 +109,6 @@ class MainActivity : ComponentActivity() {
                     val sessionStatus by supabase.auth.sessionStatus.collectAsState()
                     val isAuthenticated = sessionStatus is SessionStatus.Authenticated
 
-                    var currentDeepLinkKey by remember { mutableStateOf(initialDeepLinkKey) }
                     val isResettingPassword = currentDeepLinkKey is ResetPasswordNavKey
 
                     Crossfade(
@@ -112,7 +119,7 @@ class MainActivity : ComponentActivity() {
                         label = "RootNavigation"
                     ) { authenticated ->
                         if (authenticated && !isResettingPassword) {
-                            InterMindApp()
+                            InterMindScreen(deepLinkKey = currentDeepLinkKey)
                         } else {
                             AuthScreen(
                                 deepLinkKey = currentDeepLinkKey,
@@ -122,6 +129,17 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        supabase.handleDeeplinks(intent)
+
+        intent.data?.let { uri ->
+            currentDeepLinkKey = deepLinkHandler.handleDeepLink(uri)
+            Log.d("!@#", "MainActivity onNewIntent: parsed $currentDeepLinkKey")
         }
     }
 }

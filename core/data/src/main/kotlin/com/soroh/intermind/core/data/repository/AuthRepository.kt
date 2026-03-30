@@ -19,4 +19,6 @@ interface AuthRepository {
     fun updatePassword(newPassword: String): Flow<AuthResponse>
 
     fun signOut(): Flow<AuthResponse>
+
+    suspend fun saveFcmToken(token: String)
 }

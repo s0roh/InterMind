@@ -20,5 +20,6 @@ android {
 }
 
 dependencies {
+    implementation(projects.feature.explore.api)
     api(projects.core.navigation)
 }

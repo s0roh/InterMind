@@ -1,22 +1,22 @@
-package com.soroh.intermind.feature.auth.impl.util
+package com.soroh.intermind.feature.decks.impl.util
 
 import android.net.Uri
 import com.soroh.intermind.core.navigation.deeplink.DeepLinkKey
 import com.soroh.intermind.core.navigation.deeplink.FeatureDeepLinkParser
-import com.soroh.intermind.feature.auth.api.navigation.ResetPasswordNavKey
-import jakarta.inject.Inject
+import com.soroh.intermind.feature.decks.api.navigation.DecksNavKey
+import javax.inject.Inject
 
-internal class AuthDeepLinkParser @Inject constructor() : FeatureDeepLinkParser {
+internal class DecksDeepLinkParser @Inject constructor() : FeatureDeepLinkParser {
     override fun parse(uri: Uri): DeepLinkKey? {
         val host = uri.host
         val path = uri.path
 
         return when {
             host == "intermind.com" && path?.contains(
-                "/reset-password",
+                "/decks",
                 ignoreCase = true
             ) == true -> {
-                ResetPasswordNavKey
+                DecksNavKey
             }
 
             else -> null
