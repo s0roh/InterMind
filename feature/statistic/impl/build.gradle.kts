@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.soroh.intermind.feature.deckdetails.impl"
+    namespace = "com.soroh.intermind.feature.statistic.impl"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -26,32 +26,25 @@ android {
 
 dependencies {
     implementation(projects.core.designsystem)
-    implementation(projects.feature.deckdetails.api)
-    implementation(projects.feature.addeditdeck.api)
-    implementation(projects.feature.addeditcard.api)
-    implementation(projects.feature.training.api)
-    implementation(projects.feature.trainingmodesettings.api)
-    implementation(projects.feature.statistic.api)
     implementation(projects.core.ui)
     implementation(projects.core.data)
-    implementation(projects.core.domain)
+    implementation(projects.feature.statistic.api)
 
     implementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.navigation3.ui)
-
-    implementation(libs.androidx.lifecycle.runtimeCompose)
-    implementation(libs.androidx.lifecycle.viewModelCompose)
-
     implementation(libs.androidx.hilt.lifecycle.viewModelCompose)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.coil.compose)
-    implementation(libs.coil.network.okhttp)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.navigation3.ui)
+
+    implementation(libs.compose.charts)
+
+    implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.androidx.lifecycle.viewModelCompose)
 }

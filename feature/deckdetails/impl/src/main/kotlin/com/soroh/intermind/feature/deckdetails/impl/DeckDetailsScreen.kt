@@ -55,6 +55,7 @@ fun DeckDetailsScreen(
     onDeleteDeck: () -> Unit,
     onStartTrainingClick: (deckId: String) -> Unit,
     onTrainingModeSettingsClick: (String) -> Unit,
+    onStatisticClick: (String) -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -87,6 +88,7 @@ fun DeckDetailsScreen(
                 onEditCard = onEditCardClick,
                 onStartTrainingClick = onStartTrainingClick,
                 onTrainingModeSettingsClick = onTrainingModeSettingsClick,
+                onStatisticClick = onStatisticClick
             )
         }
     }
@@ -106,6 +108,7 @@ private fun DeckDetailsContent(
     onEditCard: (deckId: String, cardId: String?) -> Unit,
     onStartTrainingClick: (deckId: String) -> Unit,
     onTrainingModeSettingsClick: (deckId: String) -> Unit,
+    onStatisticClick: (deckId: String) -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -147,7 +150,7 @@ private fun DeckDetailsContent(
                 onNavigationClick = onBackClick,
                 showActions = state.isOwner,
                 onEditDeck = { onEditDeckClick(state.deck.id) },
-                onDeckStatistic = {},
+                onDeckStatistic = { onStatisticClick(state.deck.id) },
                 onTrainingSettings = { onTrainingModeSettingsClick(state.deck.id) },
                 onDeleteDeck = { showDeleteDialog = true },
                 containerColor = MaterialTheme.colorScheme.surfaceVariant,

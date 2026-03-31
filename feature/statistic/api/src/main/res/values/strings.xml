@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="graph_description">Описание графика</string>
+    <string name="close">Закрыть</string>
+    <string name="failed_to_load_data">Не удалось загрузить данные</string>
+    <string name="mode_choice">Выбор ответа</string>
+    <string name="mode_input">Ввод ответа</string>
+    <string name="mode_true_false">Истина/Ложь</string>
+    <string name="mode_unknown">Другое</string>
+
+    <string name="stats_forecast_title">Предстоящие повторения</string>
+    <string name="stats_modes_title">Режимы тренировок</string>
+    <string name="stats_progress_title">Прогресс изучения</string>
+
+    <string name="stats_forecast_description">График показывает количество карточек, которые потребуют повторения в ближайшие 10 дней согласно алгоритму FSRS.</string>
+    <string name="stats_modes_description">Этот график показывает вашу производительность в разных типах упражнений. Помогает понять, в каких режимах вы чаще всего ошибаетесь.</string>
+    <string name="stats_progress_description">Разделение карт по уровню знаний: Новые (еще не пройдены), Изучаемые (в процессе запоминания) и Закрепленные (перешли в долгосрочную память).</string>
+</resources>

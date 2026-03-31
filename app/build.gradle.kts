@@ -63,6 +63,8 @@ dependencies {
     implementation(projects.feature.training.impl)
     implementation(projects.feature.trainingmodesettings.api)
     implementation(projects.feature.trainingmodesettings.impl)
+    implementation(projects.feature.statistic.api)
+    implementation(projects.feature.statistic.impl)
 
     implementation(projects.core.designsystem)
     implementation(projects.core.data)
