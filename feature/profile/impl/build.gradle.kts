@@ -26,9 +26,10 @@ android {
 
 dependencies {
     implementation(projects.core.designsystem)
+    implementation(projects.core.ui)
     implementation(projects.feature.profile.api)
-    implementation(projects.feature.auth.impl) // Убрать когда будет Hilt
-    // Supabase
+    implementation(projects.core.data)
+
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.auth.kt)
 
@@ -47,4 +48,7 @@ dependencies {
     implementation(libs.androidx.hilt.lifecycle.viewModelCompose)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 }

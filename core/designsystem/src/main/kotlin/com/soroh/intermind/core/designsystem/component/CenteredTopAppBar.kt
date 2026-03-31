@@ -37,7 +37,6 @@ fun CenteredTopAppBar(
     containerColor: Color? = null,
     onNavigationClick: (() -> Unit)? = null,
     onEditDeck: (() -> Unit)? = null,
-    onOwner: (() -> Unit)? = null,
     onDeckStatistic: (() -> Unit)? = null,
     onTrainingSettings: (() -> Unit)? = null,
     onDeleteDeck: (() -> Unit)? = null,
@@ -108,23 +107,6 @@ fun CenteredTopAppBar(
                                 leadingIcon = {
                                     Icon(
                                         painterResource(R.drawable.ic_edit),
-                                        contentDescription = null
-                                    )
-                                }
-                            )
-                        }
-                    }
-                    if (showActions != true) {
-                        onOwner?.let {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.go_to_owner)) },
-                                onClick = {
-                                    expanded = false
-                                    it()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = InterMindIcons.OutlinedPerson,
                                         contentDescription = null
                                     )
                                 }

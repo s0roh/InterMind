@@ -53,6 +53,13 @@ class Navigator(val state: NavigationState) {
         }
     }
 
+    fun resetToStart() {
+        val startKey = state.startKey
+        state.topLevelStack.clear()
+        state.topLevelStack.add(startKey)
+        clearSubStack()
+    }
+
     /**
      * Go to a non top level key.
      */
