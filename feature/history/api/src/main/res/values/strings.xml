@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_history_api_title">История</string>
+    <string name="you_dont_have_any_training_history_yet">У вас пока нет истории тренировок</string>
+    <string name="history_legend_correct">Верно</string>
+    <string name="history_legend_errors">Ошибки</string>
+    <string name="history_legend_skipped">Пропущено</string>
 </resources>

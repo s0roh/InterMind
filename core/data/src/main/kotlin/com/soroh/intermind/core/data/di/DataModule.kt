@@ -7,6 +7,8 @@ import com.soroh.intermind.core.data.repository.DecksRepository
 import com.soroh.intermind.core.data.repository.DecksRepositoryImpl
 import com.soroh.intermind.core.data.repository.ExploreRepository
 import com.soroh.intermind.core.data.repository.ExploreRepositoryImpl
+import com.soroh.intermind.core.data.repository.HistoryRepository
+import com.soroh.intermind.core.data.repository.HistoryRepositoryImpl
 import com.soroh.intermind.core.data.repository.TrainingRepository
 import com.soroh.intermind.core.data.repository.TrainingRepositoryImpl
 import dagger.Binds
@@ -40,6 +42,10 @@ interface DataModule {
     @Binds
     @Singleton
     fun bindExploreRepository(exploreRepositoryImpl: ExploreRepositoryImpl): ExploreRepository
+
+    @Binds
+    @Singleton
+    fun bindHistoryRepository(historyRepositoryImpl: HistoryRepositoryImpl): HistoryRepository
 
     companion object {
 
