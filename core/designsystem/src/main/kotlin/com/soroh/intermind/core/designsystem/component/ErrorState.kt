@@ -21,7 +21,9 @@ fun ErrorState(
     iconResId: Int? = null,
 ) {
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -30,12 +32,15 @@ fun ErrorState(
                 painter = painterResource(id = it),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(bottom = 14.dp).size(100.dp)
+                modifier = Modifier
+                    .padding(bottom = 14.dp)
+                    .size(100.dp)
             )
         }
         Text(
             text = message,
-            color = MaterialTheme.colorScheme.error
+            color = MaterialTheme.colorScheme.error,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }
 }

@@ -9,6 +9,7 @@ import com.soroh.intermind.feature.addeditdeck.api.navigation.AddEditDeckNavKey
 import com.soroh.intermind.feature.deckdetails.api.navigation.DeckDetailsNavKey
 import com.soroh.intermind.feature.deckdetails.impl.DeckDetailsScreen
 import com.soroh.intermind.feature.deckdetails.impl.DeckDetailsViewModel
+import com.soroh.intermind.feature.statistic.api.navigation.StatisticNavKey
 import com.soroh.intermind.feature.training.api.navigation.TrainingNavKey
 import com.soroh.intermind.feature.trainingmodesettings.api.navigation.TrainingModeSettingsNavKey
 
@@ -35,7 +36,8 @@ fun EntryProviderScope<NavKey>.deckDetailsEntry(navigator: Navigator) {
                         deckId = deckId
                     )
                 )
-            }
+            },
+             onStatisticClick = { deckId -> navigator.navigate(StatisticNavKey(deckId = deckId)) }
         )
     }
 }

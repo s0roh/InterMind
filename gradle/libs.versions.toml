@@ -31,6 +31,7 @@ googleServices = "4.4.4"
 firebaseBom = "34.11.0"
 playServicesTasks = "18.4.1"
 paging = "3.4.2"
+composeCharts = "0.2.5"
 
 [libraries]
 # Google
@@ -42,6 +43,7 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 play-services-tasks = { group = "com.google.android.gms", name = "play-services-tasks", version.ref = "playServicesTasks" }
 
+compose-charts = { module = "io.github.ehsannarmani:compose-charts", version.ref = "composeCharts" }
 
 # Supabase
 supabase-auth-kt = { module = "io.github.jan-tennert.supabase:auth-kt", version.ref = "supabase" }
