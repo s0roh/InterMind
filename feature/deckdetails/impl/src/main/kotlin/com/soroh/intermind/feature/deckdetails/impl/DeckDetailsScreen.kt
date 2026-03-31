@@ -147,7 +147,6 @@ private fun DeckDetailsContent(
                 onNavigationClick = onBackClick,
                 showActions = state.isOwner,
                 onEditDeck = { onEditDeckClick(state.deck.id) },
-                onOwner = {},
                 onDeckStatistic = {},
                 onTrainingSettings = { onTrainingModeSettingsClick(state.deck.id) },
                 onDeleteDeck = { showDeleteDialog = true },

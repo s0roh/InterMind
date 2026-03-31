@@ -9,6 +9,8 @@ import com.soroh.intermind.core.data.repository.ExploreRepository
 import com.soroh.intermind.core.data.repository.ExploreRepositoryImpl
 import com.soroh.intermind.core.data.repository.HistoryRepository
 import com.soroh.intermind.core.data.repository.HistoryRepositoryImpl
+import com.soroh.intermind.core.data.repository.ProfileRepository
+import com.soroh.intermind.core.data.repository.ProfileRepositoryImpl
 import com.soroh.intermind.core.data.repository.TrainingRepository
 import com.soroh.intermind.core.data.repository.TrainingRepositoryImpl
 import dagger.Binds
@@ -46,6 +48,10 @@ interface DataModule {
     @Binds
     @Singleton
     fun bindHistoryRepository(historyRepositoryImpl: HistoryRepositoryImpl): HistoryRepository
+
+    @Binds
+    @Singleton
+    fun bindProfileRepository(profileRepositoryImpl: ProfileRepositoryImpl): ProfileRepository
 
     companion object {
 

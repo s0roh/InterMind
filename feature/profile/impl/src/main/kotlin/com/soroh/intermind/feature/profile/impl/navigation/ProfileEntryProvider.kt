@@ -8,6 +8,6 @@ import com.soroh.intermind.feature.profile.impl.ProfileScreen
 
 fun EntryProviderScope<NavKey>.profileEntry(navigator: Navigator) {
     entry<ProfileNavKey> {
-        ProfileScreen()
+        ProfileScreen(onSignUpClick = { navigator.resetToStart() })
     }
 }

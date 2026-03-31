@@ -164,21 +164,6 @@ class AuthViewModel @Inject constructor(
         )
     }
 
-    fun signOut() {
-        authRepository.signOut()
-            .onEach { response ->
-                when (response) {
-                    is AuthResponse.Success -> {
-                        showSnackbar("Вы вышли из аккаунта")
-                    }
-
-                    is AuthResponse.Error -> {
-                        showSnackbar("Ошибка при выходе")
-                    }
-                }
-            }.launchIn(viewModelScope)
-    }
-
     fun onUsernameChange(value: String) {
         _uiState.update {
             it.copy(username = value)
